@@ -1,5 +1,18 @@
 // Add Chart.js for statistics
-document.head.innerHTML += '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>';
+function loadChartJS() {
+    return new Promise((resolve, reject) => {
+        if (typeof Chart !== 'undefined') {
+            resolve();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load Chart.js'));
+        document.head.appendChild(script);
+    });
+}
 
 // Constants
 const CONSTANTS = {
@@ -152,6 +165,11 @@ async function initializeDraft() {
     }
 
     try {
+        // Load Chart.js first
+        console.log('Loading Chart.js...');
+        await loadChartJS();
+        console.log('Chart.js loaded successfully');
+
         // Verify DOM elements
         console.log('Verifying DOM elements...');
         const missingElements = Object.entries(DOM)
@@ -397,7 +415,15 @@ function initializeDraftBoard() {
     
     // Create rounds of picks (4 picks per round)
     for (let round = 1; round <= CONSTANTS.TOTAL_ROUNDS; round++) {
-        for (let pick = 1; pick <= CONSTANTS.TEAMS_PER_ROUND; pick++) {
+        // Determine if this round should be reversed (snake draft)
+        const isReversed = round % 2 === 0;
+        const picks = Array.from({ length: CONSTANTS.TEAMS_PER_ROUND }, (_, i) => i + 1);
+        
+        if (isReversed) {
+            picks.reverse();
+        }
+        
+        picks.forEach(pick => {
             const row = document.createElement('tr');
             row.setAttribute('data-round', round);
             row.setAttribute('data-pick', pick);
@@ -410,6 +436,12 @@ function initializeDraftBoard() {
             });
             
             const originalTeam = draftPick ? draftPick.nflTeam : 'Unassigned';
+            const isMyTeam = currentUser === originalTeam;
+            
+            // Add appropriate class based on team
+            if (isMyTeam) {
+                row.className = 'table-success';
+            }
             
             row.innerHTML = `
                 <td>${round}</td>
@@ -426,7 +458,7 @@ function initializeDraftBoard() {
                 </td>
             `;
             tbody.appendChild(row);
-        }
+        });
     }
 }
 
@@ -499,6 +531,14 @@ function updatePlayerPool() {
     
     filteredItems.forEach(item => {
         const row = document.createElement('tr');
+        const isDrafted = item.drafted;
+        const isMyTeam = currentUser === item.nflTeam;
+        
+        // Add appropriate class based on draft status
+        if (isDrafted) {
+            row.className = isMyTeam ? 'table-success' : 'table-danger';
+        }
+        
         row.innerHTML = `
             <td>${item.name}</td>
             <td>${item.position}</td>
@@ -506,7 +546,7 @@ function updatePlayerPool() {
             <td>${item.originalOwner}</td>
             <td>${item.adp === CONSTANTS.DEFAULT_ADP ? 'N/A' : item.adp}</td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="makePickFromPool('${item.name}')">
+                <button class="btn btn-sm btn-primary" onclick="makePickFromPool('${item.name}')" ${isDrafted ? 'disabled' : ''}>
                     Draft
                 </button>
             </td>
@@ -752,7 +792,7 @@ function makePick(round, pick, playerName) {
         return;
     }
     
-    const player = players.find(p => p.name === playerName);
+    const player = players.find(p => p.name === playerName) || draftPicks.find(p => p.name === playerName);
     if (!player) {
         ErrorHandler.show('Player not found');
         return;
@@ -770,6 +810,10 @@ function makePick(round, pick, playerName) {
         row.querySelector('td:nth-child(5)').textContent = player.position;
         row.querySelector('td:nth-child(6)').textContent = player.originalOwner;
         row.querySelector('td:nth-child(7)').textContent = player.adp === CONSTANTS.DEFAULT_ADP ? 'N/A' : player.adp;
+        
+        // Add appropriate class based on team
+        const isMyTeam = currentUser === originalTeam;
+        row.className = isMyTeam ? 'table-success' : 'table-danger';
     }
     
     // Update the player's status
@@ -1031,7 +1075,7 @@ function resetDraft() {
 // Initialize statistics with error handling
 function initializeStatistics() {
     try {
-        // Wait for Chart.js to load
+        // Verify Chart.js is loaded
         if (typeof Chart === 'undefined') {
             console.error('Chart.js not loaded');
             return;
