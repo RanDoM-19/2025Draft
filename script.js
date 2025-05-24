@@ -3,9 +3,9 @@ document.head.innerHTML += '<script src="https://cdn.jsdelivr.net/npm/chart.js">
 
 // Constants
 const CONSTANTS = {
-    TOTAL_ROUNDS: 12,
-    TEAMS_PER_ROUND: 12,
-    TOTAL_PICKS: 144,
+    TOTAL_ROUNDS: 10,  // 5 rounds for 2025 + 5 rounds for 2026
+    TEAMS_PER_ROUND: 4, // 4 teams in the draft
+    TOTAL_PICKS: 40,    // 10 rounds * 4 teams
     DEFAULT_TIMER: 60,
     MAX_TIMER: 300,
     MIN_TIMER: 30,
@@ -16,7 +16,8 @@ const CONSTANTS = {
         WR: '#FFCE56',
         TE: '#4BC0C0',
         K: '#9966FF',
-        DEF: '#FF9F40'
+        DEF: '#FF9F40',
+        PICK: '#FF9F40'  // Color for draft picks
     }
 };
 
@@ -36,44 +37,44 @@ let draftOrder = {
     // 2025 Draft Picks
     '1-1': '94Sleeper',    // 1.01
     '1-2': 'NibsArmy',     // 1.02
+    '1-3': 'JoshAllenFuksUrTeam', // 1.03
+    '1-4': 'samdecker',    // 1.04
     '2-1': '94Sleeper',    // 2.01
-    '2-4': 'JoshAllenFuksUrTeam', // 2.04
-    '2-5': 'NibsArmy',     // 2.05 (npizz24)
-    '2-12': 'samdecker',   // 2.12 (connormolloy34)
+    '2-2': 'NibsArmy',     // 2.02
+    '2-3': 'JoshAllenFuksUrTeam', // 2.03
+    '2-4': 'samdecker',    // 2.04
     '3-1': '94Sleeper',    // 3.01
-    '3-4': 'JoshAllenFuksUrTeam', // 3.04
-    '3-5': 'NibsArmy',     // 3.05 (npizz24)
-    '3-7': '94Sleeper',    // 3.07 (samdecker)
-    '3-10': 'NibsArmy',    // 3.10 (Augeller24)
-    '3-11': 'samdecker',   // 3.11 (EricM14)
-    '3-12': 'samdecker',   // 3.12 (connormolloy34)
+    '3-2': 'NibsArmy',     // 3.02
+    '3-3': 'JoshAllenFuksUrTeam', // 3.03
+    '3-4': 'samdecker',    // 3.04
     '4-1': '94Sleeper',    // 4.01
-    '4-4': 'JoshAllenFuksUrTeam', // 4.04
+    '4-2': 'NibsArmy',     // 4.02
+    '4-3': 'JoshAllenFuksUrTeam', // 4.03
+    '4-4': 'samdecker',    // 4.04
     '5-1': '94Sleeper',    // 5.01
     '5-2': 'NibsArmy',     // 5.02
-    '5-4': 'JoshAllenFuksUrTeam', // 5.04
-    '5-6': 'NibsArmy',     // 5.06 (TommyFink)
-    '5-7': 'NibsArmy',     // 5.07 (samdecker)
+    '5-3': 'JoshAllenFuksUrTeam', // 5.03
+    '5-4': 'samdecker',    // 5.04
     
     // 2026 Draft Picks
     '6-1': '94Sleeper',    // 2026 1st Rd
     '6-2': 'NibsArmy',     // 2026 1st Rd
-    '6-3': 'JoshAllenFuksUrTeam', // 2026 1st Rd (EricM14)
-    '6-4': 'JoshAllenFuksUrTeam', // 2026 1st Rd
-    '7-1': '94Sleeper',    // 2026 2nd Rd (samdecker)
-    '7-2': '94Sleeper',    // 2026 2nd Rd
-    '7-3': 'samdecker',    // 2026 2nd Rd (npizz24)
-    '7-4': 'samdecker',    // 2026 2nd Rd (lilwolfman14)
-    '7-5': 'JoshAllenFuksUrTeam', // 2026 2nd Rd
+    '6-3': 'JoshAllenFuksUrTeam', // 2026 1st Rd
+    '6-4': 'samdecker',    // 2026 1st Rd
+    '7-1': '94Sleeper',    // 2026 2nd Rd
+    '7-2': 'NibsArmy',     // 2026 2nd Rd
+    '7-3': 'JoshAllenFuksUrTeam', // 2026 2nd Rd
+    '7-4': 'samdecker',    // 2026 2nd Rd
     '8-1': '94Sleeper',    // 2026 3rd Rd
     '8-2': 'NibsArmy',     // 2026 3rd Rd
-    '8-3': 'samdecker',    // 2026 3rd Rd
-    '8-4': 'JoshAllenFuksUrTeam', // 2026 3rd Rd
+    '8-3': 'JoshAllenFuksUrTeam', // 2026 3rd Rd
+    '8-4': 'samdecker',    // 2026 3rd Rd
     '9-1': '94Sleeper',    // 2026 4th Rd
-    '9-2': 'NibsArmy',     // 2026 4th Rd (JoshAllenFuksUrTeam)
-    '9-3': 'NibsArmy',     // 2026 4th Rd (TommyFink)
+    '9-2': 'NibsArmy',     // 2026 4th Rd
+    '9-3': 'JoshAllenFuksUrTeam', // 2026 4th Rd
+    '9-4': 'samdecker',    // 2026 4th Rd
     '10-1': '94Sleeper',   // 2026 5th Rd
-    '10-2': 'JoshAllenFuksUrTeam', // 2026 5th Rd (JustinBondi)
+    '10-2': 'NibsArmy',    // 2026 5th Rd
     '10-3': 'JoshAllenFuksUrTeam', // 2026 5th Rd
     '10-4': 'samdecker',   // 2026 5th Rd
 };
@@ -172,6 +173,10 @@ async function initializeDraft() {
         console.log('Setting up event listeners...');
         setupEventListeners();
         
+        // Load draft settings first to ensure draft order is set
+        console.log('Loading draft settings...');
+        loadDraftSettings();
+        
         // Show user selection modal
         console.log('Showing user selection modal...');
         MODALS.userSelection.show();
@@ -246,10 +251,6 @@ async function initializeDraft() {
             clearTimeout(loadTimeout);
             throw error;
         }
-
-        // Load draft settings
-        console.log('Loading draft settings...');
-        loadDraftSettings();
         
         // Initialize the draft board
         console.log('Initializing draft board...');
@@ -417,7 +418,7 @@ function initializeDraftBoard() {
     }
 }
 
-// Update the player pool with optimization and debugging
+// Update the player pool to include draft picks
 function updatePlayerPool() {
     console.log('Updating player pool...');
     
@@ -432,13 +433,28 @@ function updatePlayerPool() {
         return;
     }
 
-    if (!Array.isArray(players)) {
-        console.error('Players array is invalid');
-        return;
+    // Create draft picks as draftable assets
+    const draftPicks = [];
+    for (let round = 1; round <= CONSTANTS.TOTAL_ROUNDS; round++) {
+        for (let pick = 1; pick <= CONSTANTS.TEAMS_PER_ROUND; pick++) {
+            const pickKey = `${round}-${pick}`;
+            const originalOwner = draftOrder[pickKey];
+            if (originalOwner) {
+                draftPicks.push({
+                    name: `${round > 5 ? '2026' : '2025'} Round ${round > 5 ? round - 5 : round} Pick ${pick}`,
+                    position: 'PICK',
+                    nflTeam: originalOwner,
+                    originalOwner: originalOwner,
+                    adp: round * 100 + pick, // Higher rounds have higher ADP
+                    drafted: false,
+                    isPick: true
+                });
+            }
+        }
     }
 
-    console.log(`Total players: ${players.length}`);
-    console.log(`Drafted players: ${players.filter(p => p.drafted).length}`);
+    // Combine players and draft picks
+    const allDraftableItems = [...players, ...draftPicks];
     
     const searchTerm = DOM.playerSearch ? DOM.playerSearch.value.toLowerCase() : '';
     const positionFilterValue = DOM.positionFilter ? DOM.positionFilter.value : 'ALL';
@@ -453,27 +469,27 @@ function updatePlayerPool() {
     // Use Set for faster lookups
     const searchTerms = new Set(searchTerm.split(' ').filter(term => term.length > 0));
     
-    let filteredPlayers = players.filter(player => {
-        if (!player || player.drafted) {
+    let filteredItems = allDraftableItems.filter(item => {
+        if (!item || item.drafted) {
             return false;
         }
         
         const matchesSearch = searchTerms.size === 0 || 
             Array.from(searchTerms).every(term => 
-                player.name.toLowerCase().includes(term) ||
-                player.position.toLowerCase().includes(term) ||
-                player.nflTeam.toLowerCase().includes(term)
+                item.name.toLowerCase().includes(term) ||
+                item.position.toLowerCase().includes(term) ||
+                item.nflTeam.toLowerCase().includes(term)
             );
             
-        const matchesPosition = positionFilterValue === 'ALL' || player.position === positionFilterValue;
+        const matchesPosition = positionFilterValue === 'ALL' || item.position === positionFilterValue;
         
         return matchesSearch && matchesPosition;
     });
     
-    console.log(`Filtered players: ${filteredPlayers.length}`);
+    console.log(`Filtered items: ${filteredItems.length}`);
     
-    // Sort players with optimization
-    filteredPlayers.sort((a, b) => {
+    // Sort items with optimization
+    filteredItems.sort((a, b) => {
         switch (sortBy) {
             case 'adp':
                 return a.adp - b.adp;
@@ -489,16 +505,16 @@ function updatePlayerPool() {
     // Use DocumentFragment for better performance
     const fragment = document.createDocumentFragment();
     
-    filteredPlayers.forEach(player => {
+    filteredItems.forEach(item => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${player.name}</td>
-            <td>${player.position}</td>
-            <td>${player.nflTeam}</td>
-            <td>${player.originalOwner}</td>
-            <td>${player.adp === CONSTANTS.DEFAULT_ADP ? 'N/A' : player.adp}</td>
+            <td>${item.name}</td>
+            <td>${item.position}</td>
+            <td>${item.nflTeam}</td>
+            <td>${item.originalOwner}</td>
+            <td>${item.adp === CONSTANTS.DEFAULT_ADP ? 'N/A' : item.adp}</td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="makePickFromPool('${player.name}')">
+                <button class="btn btn-sm btn-primary" onclick="makePickFromPool('${item.name}')">
                     Draft
                 </button>
             </td>
@@ -539,9 +555,58 @@ function initializeTeamRosters() {
 
 // Load draft settings with validation
 function loadDraftSettings() {
+    console.log('Loading draft settings...');
+    
+    // Initialize with default draft order if none exists
+    const defaultDraftOrder = {
+        // 2025 Draft Picks
+        '1-1': '94Sleeper',    // 1.01
+        '1-2': 'NibsArmy',     // 1.02
+        '2-1': '94Sleeper',    // 2.01
+        '2-4': 'JoshAllenFuksUrTeam', // 2.04
+        '2-5': 'NibsArmy',     // 2.05 (npizz24)
+        '2-12': 'samdecker',   // 2.12 (connormolloy34)
+        '3-1': '94Sleeper',    // 3.01
+        '3-4': 'JoshAllenFuksUrTeam', // 3.04
+        '3-5': 'NibsArmy',     // 3.05 (npizz24)
+        '3-7': '94Sleeper',    // 3.07 (samdecker)
+        '3-10': 'NibsArmy',    // 3.10 (Augeller24)
+        '3-11': 'samdecker',   // 3.11 (EricM14)
+        '3-12': 'samdecker',   // 3.12 (connormolloy34)
+        '4-1': '94Sleeper',    // 4.01
+        '4-4': 'JoshAllenFuksUrTeam', // 4.04
+        '5-1': '94Sleeper',    // 5.01
+        '5-2': 'NibsArmy',     // 5.02
+        '5-4': 'JoshAllenFuksUrTeam', // 5.04
+        '5-6': 'NibsArmy',     // 5.06 (TommyFink)
+        '5-7': 'NibsArmy',     // 5.07 (samdecker)
+        
+        // 2026 Draft Picks
+        '6-1': '94Sleeper',    // 2026 1st Rd
+        '6-2': 'NibsArmy',     // 2026 1st Rd
+        '6-3': 'JoshAllenFuksUrTeam', // 2026 1st Rd (EricM14)
+        '6-4': 'JoshAllenFuksUrTeam', // 2026 1st Rd
+        '7-1': '94Sleeper',    // 2026 2nd Rd (samdecker)
+        '7-2': '94Sleeper',    // 2026 2nd Rd
+        '7-3': 'samdecker',    // 2026 2nd Rd (npizz24)
+        '7-4': 'samdecker',    // 2026 2nd Rd (lilwolfman14)
+        '7-5': 'JoshAllenFuksUrTeam', // 2026 2nd Rd
+        '8-1': '94Sleeper',    // 2026 3rd Rd
+        '8-2': 'NibsArmy',     // 2026 3rd Rd
+        '8-3': 'samdecker',    // 2026 3rd Rd
+        '8-4': 'JoshAllenFuksUrTeam', // 2026 3rd Rd
+        '9-1': '94Sleeper',    // 2026 4th Rd
+        '9-2': 'NibsArmy',     // 2026 4th Rd (JoshAllenFuksUrTeam)
+        '9-3': 'NibsArmy',     // 2026 4th Rd (TommyFink)
+        '10-1': '94Sleeper',   // 2026 5th Rd
+        '10-2': 'JoshAllenFuksUrTeam', // 2026 5th Rd (JustinBondi)
+        '10-3': 'JoshAllenFuksUrTeam', // 2026 5th Rd
+        '10-4': 'samdecker',   // 2026 5th Rd
+    };
+
     const settings = Storage.get('draftSettings', {
         timerDuration: CONSTANTS.DEFAULT_TIMER,
-        draftOrder: {}
+        draftOrder: defaultDraftOrder
     });
     
     const timerDuration = Math.min(
@@ -553,7 +618,16 @@ function loadDraftSettings() {
     timeRemaining = timerDuration;
     draftOrder = settings.draftOrder;
     
+    console.log('Loaded draft order:', draftOrder);
+    
+    // Initialize draft order table with the loaded settings
     initializeDraftOrderTable();
+    
+    // Save the settings to ensure they persist
+    Storage.set('draftSettings', {
+        timerDuration,
+        draftOrder
+    });
 }
 
 // Initialize draft order table with validation
@@ -867,7 +941,7 @@ function startDraftTimer() {
             const availablePlayers = players.filter(p => !p.drafted);
             if (availablePlayers.length > 0) {
                 const nextPlayer = availablePlayers[0];
-                makePick(Math.floor(currentPick / 12) + 1, currentPick % 12 || 12, nextPlayer.name);
+                makePick(Math.floor(currentPick / 4) + 1, currentPick % 4 || 4, nextPlayer.name);
             }
         }
     }, 1000);
@@ -950,16 +1024,17 @@ function initializeStatistics() {
     positionChart = new Chart(positionCtx, {
         type: 'pie',
         data: {
-            labels: ['QB', 'RB', 'WR', 'TE', 'K', 'DEF'],
+            labels: ['QB', 'RB', 'WR', 'TE', 'K', 'DEF', 'PICK'],
             datasets: [{
-                data: [0, 0, 0, 0, 0, 0],
+                data: [0, 0, 0, 0, 0, 0, 0],
                 backgroundColor: [
                     CONSTANTS.CHART_COLORS.QB,
                     CONSTANTS.CHART_COLORS.RB,
                     CONSTANTS.CHART_COLORS.WR,
                     CONSTANTS.CHART_COLORS.TE,
                     CONSTANTS.CHART_COLORS.K,
-                    CONSTANTS.CHART_COLORS.DEF
+                    CONSTANTS.CHART_COLORS.DEF,
+                    CONSTANTS.CHART_COLORS.PICK
                 ]
             }]
         }
@@ -996,7 +1071,7 @@ function initializeStatistics() {
 function updateStatistics() {
     // Update position distribution
     const positionCounts = {
-        QB: 0, RB: 0, WR: 0, TE: 0, K: 0, DEF: 0
+        QB: 0, RB: 0, WR: 0, TE: 0, K: 0, DEF: 0, PICK: 0
     };
     
     draftHistory.forEach(pick => {
@@ -1149,8 +1224,8 @@ function searchDraftHistory() {
 
 // Make pick from player pool
 function makePickFromPool(playerName) {
-    const currentRound = Math.floor(currentPick / 12) + 1;
-    const currentPickInRound = currentPick % 12 || 12;
+    const currentRound = Math.floor(currentPick / 4) + 1;
+    const currentPickInRound = currentPick % 4 || 4;
     makePick(currentRound, currentPickInRound, playerName);
 }
 
