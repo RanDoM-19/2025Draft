@@ -1,0 +1,89 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.navbar {
+    margin-bottom: 20px;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+#playerPool {
+    font-size: 0.9rem;
+}
+
+#playerPool tbody tr {
+    cursor: pointer;
+}
+
+#playerPool tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.team-roster {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.team-roster h6 {
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+.player-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.player-list li {
+    padding: 5px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.player-list li:last-child {
+    border-bottom: none;
+}
+
+.drafted {
+    text-decoration: line-through;
+    color: #6c757d;
+}
+
+.current-pick {
+    background-color: #e3f2fd !important;
+}
+
+.btn-draft {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .btn-draft {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+    }
+} 
