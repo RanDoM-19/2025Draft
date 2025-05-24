@@ -1,0 +1,31 @@
+DISTRIBUTION DRAFT BOARD
+==============================
+
+TEAMS (4):
+1. 94Sleeper (40 assets)\n2. samdecker (35 assets)\n3. JoshAllenFuksUrTeam (35 assets)\n4. JustinBondi (33 assets)
+
+TOTAL ASSETS: 143
+ESTIMATED ROUNDS: 36
+
+POSITION BREAKDOWN:
+WR: 40\nRB: 22\nQB: 20\nTE: 11\nDEF: 7\nK: 6
+
+DETAILED BREAKDOWN:
+====================
+
+94SLEEPER:\n──────────\n  RB (6):\n    • Roschon Johnson\n    • Frank Gore\n    • Ray Davis\n    • Clyde Edwards-Helaire\n    • Dameon Pierce\n    • Bijan Robinson\n  WR (13):\n    • Malik Washington\n    • Xavier Worthy\n    • Jermaine Burton\n    • Bub Means\n    • Devaughn Vele\n    • Josh Reynolds\n    • Jakobi Meyers\n    • CeeDee Lamb\n    • K.J. Osborn\n    • Jahan Dotson\n    • John Metchie\n    • Skyy Moore\n    • Kayshon Boutte\n  QB (3):\n    • Jacoby Brissett\n    • Deshaun Watson\n    • Kyler Murray\n  K (2):\n    • Ka'imi Fairbairn\n    • Matthew Wright\n  TE (3):\n    • Dawson Knox\n    • Cade Otton\n    • Greg Dulcich\n  DEF (2):\n    • Dallas Cowboys\n    • Philadelphia Eagles\n  PICKS (11):\n    • 2025 Round 1 (originally 9)\n    • 2025 Round 2 (originally 9)\n    • 2025 Round 3 (originally 9)\n    • 2025 Round 4 (originally 9)\n    • 2025 Round 5 (originally 9)\n    • 2026 Round 1 (originally 9)\n    • 2026 Round 2 (originally 9)\n    • 2026 Round 3 (originally 9)\n    • 2026 Round 4 (originally 9)\n    • 2026 Round 5 (originally 9)\n    • 2025 Round 3 (originally 5)\n\nSAMDECKER:\n──────────\n  WR (8):\n    • Jonathan Mingo\n    • Kendrick Bourne\n    • A.J. Brown\n    • Brandon Aiyuk\n    • Jaylen Waddle\n    • Joshua Palmer\n    • Tank Dell\n    • Quentin Johnston\n  TE (2):\n    • Dalton Kincaid\n    • Cade Stover\n  QB (8):\n    • Joe Milton\n    • Michael Penix\n    • Russell Wilson\n    • Sam Darnold\n    • Tua Tagovailoa\n    • Trey Lance\n    • Andy Dalton\n    • Will Levis\n  RB (6):\n    • Alvin Kamara\n    • D'Andre Swift\n    • Travis Etienne\n    • Brian Robinson\n    • Jordan Mason\n    • Deuce Vaughn\n  K (1):\n    • Evan McPherson\n  DEF (2):\n    • Buffalo Bills\n    • Houston Texans\n  PICKS (8):\n    • 2026 Round 1 (originally 5)\n    • 2026 Round 2 (originally 5)\n    • 2026 Round 3 (originally 5)\n    • 2026 Round 4 (originally 5)\n    • 2026 Round 5 (originally 5)\n    • 2025 Round 2 (originally 7)\n    • 2025 Round 3 (originally 7)\n    • 2025 Round 3 (originally 8)\n\nJOSHALLENFUKSURTEAM:\n────────────────────\n  RB (5):\n    • Kenny McIntosh\n    • Chris Rodriguez\n    • Ameer Abdullah\n    • Ezekiel Elliott\n    • Jonathan Taylor\n  WR (12):\n    • Xavier Legette\n    • Luke McCaffrey\n    • Davante Adams\n    • Amari Cooper\n    • Cooper Kupp\n    • Noah Brown\n    • Terry McLaurin\n    • Darius Slayton\n    • Kadarius Toney\n    • Wan'Dale Robinson\n    • Alec Pierce\n    • Jalin Hyatt\n  K (1):\n    • Justin Tucker\n  TE (2):\n    • Mark Andrews\n    • Tyler Conklin\n  QB (4):\n    • Drew Lock\n    • Daniel Jones\n    • C.J. Stroud\n    • Hendon Hooker\n  DEF (2):\n    • Baltimore Ravens\n    • New York Giants\n  PICKS (9):\n    • 2025 Round 3 (originally 4)\n    • 2025 Round 4 (originally 4)\n    • 2025 Round 5 (originally 4)\n    • 2026 Round 1 (originally 4)\n    • 2026 Round 2 (originally 4)\n    • 2026 Round 3 (originally 4)\n    • 2026 Round 4 (originally 4)\n    • 2026 Round 5 (originally 4)\n    • 2025 Round 2 (originally 4)\n\nJUSTINBONDI:\n────────────\n  RB (5):\n    • MarShawn Lloyd\n    • Blake Corum\n    • David Montgomery\n    • Javonte Williams\n    • Rachaad White\n  TE (4):\n    • Ben Sinnott\n    • Hunter Henry\n    • Tyler Higbee\n    • Brenton Strange\n  WR (7):\n    • Rome Odunze\n    • Adam Thielen\n    • Chris Godwin\n    • Nico Collins\n    • Dyami Brown\n    • DeMario Douglas\n    • Jordan Addison\n  QB (5):\n    • Geno Smith\n    • Marcus Mariota\n    • Cooper Rush\n    • Baker Mayfield\n    • Mason Rudolph\n  K (2):\n    • Younghoe Koo\n    • Cameron Dicker\n  DEF (1):\n    • Kansas City Chiefs\n  PICKS (9):\n    • 2025 Round 1 (originally 11)\n    • 2025 Round 5 (originally 11)\n    • 2026 Round 1 (originally 11)\n    • 2026 Round 2 (originally 11)\n    • 2026 Round 3 (originally 11)\n    • 2026 Round 4 (originally 11)\n    • 2026 Round 5 (originally 11)\n    • 2025 Round 5 (originally 5)\n    • 2025 Round 5 (originally 12)\n\nSLEEPER SETUP:
+==============
+• Create "Startup/Rookie" draft
+• 4 teams, 36 rounds
+• Snake format recommended
+• 3-5 minute timer per pick
+• Manual player pool management
+
+DRAFT ORDER RECOMMENDATION:
+=========================
+1. JustinBondi (33 assets)
+2. JoshAllenFuksUrTeam (35 assets)
+3. samdecker (35 assets)
+4. 94Sleeper (40 assets)
+
+Note: This is a snake draft, so the order will reverse in even-numbered rounds.
