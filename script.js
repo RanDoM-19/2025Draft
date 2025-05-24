@@ -20,6 +20,9 @@ const CONSTANTS = {
     }
 };
 
+// Available teams
+const availableTeams = ['94Sleeper', 'samdecker', 'JoshAllenFuksUrTeam', 'NibsArmy'];
+
 // Global variables with error checking
 let players = [];
 let currentPick = 1;
@@ -29,7 +32,51 @@ let draftHistory = [];
 let chatMessages = [];
 let currentUser = null;
 let isCommissioner = false;
-let draftOrder = {};
+let draftOrder = {
+    // 2025 Draft Picks
+    '1-1': '94Sleeper',    // 1.01
+    '1-2': 'NibsArmy',     // 1.02
+    '2-1': '94Sleeper',    // 2.01
+    '2-4': 'JoshAllenFuksUrTeam', // 2.04
+    '2-5': 'NibsArmy',     // 2.05 (npizz24)
+    '2-12': 'samdecker',   // 2.12 (connormolloy34)
+    '3-1': '94Sleeper',    // 3.01
+    '3-4': 'JoshAllenFuksUrTeam', // 3.04
+    '3-5': 'NibsArmy',     // 3.05 (npizz24)
+    '3-7': '94Sleeper',    // 3.07 (samdecker)
+    '3-10': 'NibsArmy',    // 3.10 (Augeller24)
+    '3-11': 'samdecker',   // 3.11 (EricM14)
+    '3-12': 'samdecker',   // 3.12 (connormolloy34)
+    '4-1': '94Sleeper',    // 4.01
+    '4-4': 'JoshAllenFuksUrTeam', // 4.04
+    '5-1': '94Sleeper',    // 5.01
+    '5-2': 'NibsArmy',     // 5.02
+    '5-4': 'JoshAllenFuksUrTeam', // 5.04
+    '5-6': 'NibsArmy',     // 5.06 (TommyFink)
+    '5-7': 'NibsArmy',     // 5.07 (samdecker)
+    
+    // 2026 Draft Picks
+    '6-1': '94Sleeper',    // 2026 1st Rd
+    '6-2': 'NibsArmy',     // 2026 1st Rd
+    '6-3': 'JoshAllenFuksUrTeam', // 2026 1st Rd (EricM14)
+    '6-4': 'JoshAllenFuksUrTeam', // 2026 1st Rd
+    '7-1': '94Sleeper',    // 2026 2nd Rd (samdecker)
+    '7-2': '94Sleeper',    // 2026 2nd Rd
+    '7-3': 'samdecker',    // 2026 2nd Rd (npizz24)
+    '7-4': 'samdecker',    // 2026 2nd Rd (lilwolfman14)
+    '7-5': 'JoshAllenFuksUrTeam', // 2026 2nd Rd
+    '8-1': '94Sleeper',    // 2026 3rd Rd
+    '8-2': 'NibsArmy',     // 2026 3rd Rd
+    '8-3': 'samdecker',    // 2026 3rd Rd
+    '8-4': 'JoshAllenFuksUrTeam', // 2026 3rd Rd
+    '9-1': '94Sleeper',    // 2026 4th Rd
+    '9-2': 'NibsArmy',     // 2026 4th Rd (JoshAllenFuksUrTeam)
+    '9-3': 'NibsArmy',     // 2026 4th Rd (TommyFink)
+    '10-1': '94Sleeper',   // 2026 5th Rd
+    '10-2': 'JoshAllenFuksUrTeam', // 2026 5th Rd (JustinBondi)
+    '10-3': 'JoshAllenFuksUrTeam', // 2026 5th Rd
+    '10-4': 'samdecker',   // 2026 5th Rd
+};
 let positionChart = null;
 let teamChart = null;
 let isInitialized = false;
@@ -57,9 +104,6 @@ const MODALS = {
     pick: new bootstrap.Modal(document.getElementById('pickModal')),
     userSelection: new bootstrap.Modal(document.getElementById('userSelectionModal'))
 };
-
-// Available teams
-const availableTeams = ['94Sleeper', 'samdecker', 'JoshAllenFuksUrTeam', 'JustinBondi'];
 
 // Error handling utility
 const ErrorHandler = {
@@ -166,10 +210,12 @@ async function initializeDraft() {
                 ]);
 
                 if (!playerPoolResponse.ok) {
+                    console.error(`Player pool file not found: ${playerPoolPath}`);
                     throw new Error(`Failed to load player pool: ${playerPoolResponse.status} ${playerPoolResponse.statusText}`);
                 }
                 
                 if (!adpResponse.ok) {
+                    console.error(`ADP file not found: ${adpPath}`);
                     throw new Error(`Failed to load ADP data: ${adpResponse.status} ${adpResponse.statusText}`);
                 }
                 
@@ -235,7 +281,7 @@ function parseAndMergePlayerData(playerPoolText, adpText) {
     try {
         // Validate input
         if (!playerPoolText || !adpText) {
-            throw new Error('Missing input data');
+            throw new Error('Missing input data (player pool or ADP file failed to load)');
         }
 
         const playerPoolLines = playerPoolText.split('\n').filter(line => line.trim());
@@ -264,10 +310,11 @@ function parseAndMergePlayerData(playerPoolText, adpText) {
         console.log(`ADP entries: ${adpMap.size}`);
         
         // Parse player pool and add ADP
-        const parsedPlayers = playerPoolLines.slice(1).map(line => {
-            const values = line.split(',').map(item => item.trim().replace(/^"|"$/g, '')); // Remove quotes
-            if (values.length < 4) {
-                console.warn('Invalid player data:', line);
+        const parsedPlayers = playerPoolLines.slice(1).map((line, idx) => {
+            if (!line.trim()) return null;
+            const values = line.split(',').map(item => item.trim().replace(/^"|"$/g, ''));
+            if (values.length < 4 || !values[0]) {
+                console.warn(`Skipping malformed player data at line ${idx + 2}:`, line);
                 return null;
             }
             const name = values[0];
