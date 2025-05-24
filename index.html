@@ -4,158 +4,266 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Distribution Draft Board</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container-fluid">
-        <nav class="navbar navbar-dark bg-dark">
-            <div class="container-fluid">
-                <span class="navbar-brand mb-0 h1">Distribution Draft Board</span>
-                <div class="d-flex align-items-center">
-                    <div class="timer me-3">
-                        <span id="timerDisplay">2:00</span>
-                    </div>
-                    <div class="btn-group me-2">
-                        <button class="btn btn-outline-light" id="settingsBtn">
-                            <i class="bi bi-gear"></i>
-                        </button>
-                        <button class="btn btn-outline-light" id="themeBtn">
-                            <i class="bi bi-moon"></i>
-                        </button>
-                    </div>
-                    <button class="btn btn-outline-light me-2" id="exportBtn">Export</button>
-                    <button class="btn btn-outline-light" id="resetBtn">Reset</button>
+    <!-- User Selection Modal -->
+    <div class="modal fade" id="userSelectionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Your Role</h5>
                 </div>
-            </div>
-        </nav>
-
-        <div class="row mt-4">
-            <!-- Draft Board -->
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Draft Board</h5>
-                        <div class="draft-controls">
-                            <button class="btn btn-sm btn-outline-primary me-2" id="undoBtn" disabled>
-                                <i class="bi bi-arrow-counterclockwise"></i> Undo
-                            </button>
-                            <button class="btn btn-sm btn-outline-primary" id="viewToggleBtn">
-                                <i class="bi bi-grid"></i> Toggle View
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered" id="draftBoard">
-                                <thead>
-                                    <tr>
-                                        <th>Round</th>
-                                        <th>Pick</th>
-                                        <th>Team</th>
-                                        <th>Player</th>
-                                        <th>Position</th>
-                                        <th>Original Owner</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="draftBoardBody">
-                                    <!-- Draft picks will be inserted here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Draft History -->
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Draft History</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-sm" id="draftHistory">
-                                <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th>Pick</th>
-                                        <th>Team</th>
-                                        <th>Player</th>
-                                        <th>Position</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Draft history will be inserted here -->
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="modal-body">
+                    <div class="list-group">
+                        <button class="list-group-item list-group-item-action" data-role="commish">Commissioner</button>
+                        <button class="list-group-item list-group-item-action" data-role="94Sleeper">94Sleeper</button>
+                        <button class="list-group-item list-group-item-action" data-role="samdecker">samdecker</button>
+                        <button class="list-group-item list-group-item-action" data-role="JoshAllenFuksUrTeam">JoshAllenFuksUrTeam</button>
+                        <button class="list-group-item list-group-item-action" data-role="JustinBondi">JustinBondi</button>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Player Pool -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Player Pool</h5>
-                        <div class="input-group mt-2">
-                            <input type="text" class="form-control" id="playerSearch" placeholder="Search players...">
-                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                Filter
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" data-filter="position">By Position</a></li>
-                                <li><a class="dropdown-item" href="#" data-filter="team">By Team</a></li>
-                                <li><a class="dropdown-item" href="#" data-filter="owner">By Original Owner</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
-                            <table class="table table-sm" id="playerPool">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Position</th>
-                                        <th>Team</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="playerPoolBody">
-                                    <!-- Players will be inserted here -->
-                                </tbody>
-                            </table>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Distribution Draft</a>
+            <div class="d-flex">
+                <span class="navbar-text me-3">
+                    Timer: <span id="draftTimer">0:00</span>
+                </span>
+                <span class="navbar-text me-3">
+                    Current User: <span id="currentUser">Not Selected</span>
+                </span>
+                <button class="btn btn-light me-2" id="settingsBtn" style="display: none;">Settings</button>
+                <button class="btn btn-light me-2" id="exportBtn">Export</button>
+                <button class="btn btn-light" id="resetBtn">Reset</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-3">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-3" id="draftTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="draft-board-tab" data-bs-toggle="tab" data-bs-target="#draft-board" type="button" role="tab">Draft Board</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="player-pool-tab" data-bs-toggle="tab" data-bs-target="#player-pool" type="button" role="tab">Player Pool</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="team-rosters-tab" data-bs-toggle="tab" data-bs-target="#team-rosters" type="button" role="tab">Team Rosters</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="draft-history-tab" data-bs-toggle="tab" data-bs-target="#draft-history" type="button" role="tab">Draft History</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="draft-stats-tab" data-bs-toggle="tab" data-bs-target="#draft-stats" type="button" role="tab">Draft Stats</button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="draftTabsContent">
+            <!-- Draft Board Tab -->
+            <div class="tab-pane fade show active" id="draft-board" role="tabpanel">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Draft Board</h5>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-primary" id="exportBoardBtn">Export Board</button>
+                                    <button class="btn btn-sm btn-outline-primary" id="printBoardBtn">Print Board</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped" id="draftBoard">
+                                        <thead>
+                                            <tr>
+                                                <th>Round</th>
+                                                <th>Pick</th>
+                                                <th>Team</th>
+                                                <th>Player</th>
+                                                <th>Position</th>
+                                                <th>Original Owner</th>
+                                                <th>ADP</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Draft Chat -->
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Draft Chat</h5>
+            <!-- Player Pool Tab -->
+            <div class="tab-pane fade" id="player-pool" role="tabpanel">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Player Pool</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="playerSearch" placeholder="Search players...">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select class="form-select" id="positionFilter">
+                                            <option value="ALL">All Positions</option>
+                                            <option value="QB">QB</option>
+                                            <option value="RB">RB</option>
+                                            <option value="WR">WR</option>
+                                            <option value="TE">TE</option>
+                                            <option value="K">K</option>
+                                            <option value="DEF">DEF</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select class="form-select" id="sortBy">
+                                            <option value="adp">Sort by ADP</option>
+                                            <option value="name">Sort by Name</option>
+                                            <option value="position">Sort by Position</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-primary w-100" id="exportPoolBtn">Export Pool</button>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-striped" id="playerPool">
+                                        <thead>
+                                            <tr>
+                                                <th>Player</th>
+                                                <th>Position</th>
+                                                <th>NFL Team</th>
+                                                <th>Original Owner</th>
+                                                <th>ADP</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div id="chatMessages" class="chat-messages"></div>
-                        <div class="input-group mt-2">
-                            <input type="text" class="form-control" id="chatInput" placeholder="Type a message...">
-                            <button class="btn btn-primary" id="sendMessage">Send</button>
+                </div>
+            </div>
+
+            <!-- Team Rosters Tab -->
+            <div class="tab-pane fade" id="team-rosters" role="tabpanel">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Team Rosters</h5>
+                                <button class="btn btn-primary" id="exportRostersBtn">Export All Rosters</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="row" id="teamRosters"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Draft History Tab -->
+            <div class="tab-pane fade" id="draft-history" role="tabpanel">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Draft History</h5>
+                                <button class="btn btn-primary" id="exportHistoryBtn">Export History</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" id="historySearch" placeholder="Search draft history...">
+                                </div>
+                                <ul class="list-group" id="draftHistoryList"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Draft Stats Tab -->
+            <div class="tab-pane fade" id="draft-stats" role="tabpanel">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Draft Statistics</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card mb-3">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Position Distribution</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <canvas id="positionChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card mb-3">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Team Distribution</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <canvas id="teamChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Draft Progress</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="progress">
+                                                    <div class="progress-bar" role="progressbar" id="draftProgress"></div>
+                                                </div>
+                                                <div class="mt-2 text-center" id="draftProgressText"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Team Rosters -->
-        <div class="row mt-4">
+        <!-- Chat -->
+        <div class="row mt-3">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Team Rosters</h5>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Draft Chat</h5>
+                        <button class="btn btn-sm btn-outline-primary" id="clearChatBtn">Clear Chat</button>
                     </div>
                     <div class="card-body">
-                        <div class="row" id="teamRosters">
-                            <!-- Team rosters will be inserted here -->
+                        <div id="chatMessages" class="chat-messages"></div>
+                        <div class="input-group mt-3">
+                            <input type="text" class="form-control" id="chatInput" placeholder="Type a message...">
+                            <button class="btn btn-primary" onclick="sendChatMessage()">Send</button>
                         </div>
                     </div>
                 </div>
@@ -163,40 +271,20 @@
         </div>
     </div>
 
-    <!-- Draft Pick Modal -->
-    <div class="modal fade" id="draftPickModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+    <!-- Make Pick Modal -->
+    <div class="modal fade" id="pickModal" tabindex="-1">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Make Draft Pick</h5>
+                    <h5 class="modal-title">Make Your Pick</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="mb-3">
-                                <label class="form-label">Select Player</label>
-                                <select class="form-select" id="playerSelect">
-                                    <!-- Available players will be inserted here -->
-                                </select>
-                            </div>
-                            <div class="player-info" id="playerInfo">
-                                <!-- Player details will be inserted here -->
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="team-needs">
-                                <h6>Team Needs</h6>
-                                <div id="teamNeedsList">
-                                    <!-- Team needs will be inserted here -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <select class="form-select" id="playerSelect"></select>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="confirmPick">Confirm Pick</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="makePickBtn">Make Pick</button>
                 </div>
             </div>
         </div>
@@ -204,7 +292,7 @@
 
     <!-- Settings Modal -->
     <div class="modal fade" id="settingsModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Draft Settings</h5>
@@ -212,25 +300,36 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Pick Timer (seconds)</label>
-                        <input type="number" class="form-control" id="timerSetting" value="120" min="30" max="300">
+                        <label for="timerDuration" class="form-label">Timer Duration (seconds)</label>
+                        <input type="number" class="form-control" id="timerDuration" min="30" max="300" value="60">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Draft Order</label>
-                        <div id="draftOrderSettings">
-                            <!-- Draft order settings will be inserted here -->
+                        <h6>Draft Order Configuration</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm" id="draftOrderTable">
+                                <thead>
+                                    <tr>
+                                        <th>Round</th>
+                                        <th>Pick</th>
+                                        <th>Original Team</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="saveSettings">Save Settings</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveSettingsBtn">Save Settings</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html> 
