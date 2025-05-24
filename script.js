@@ -36,7 +36,10 @@ const availableTeams = ['94Sleeper', 'samdecker', 'JoshAllenFuksUrTeam', 'Justin
 // Initialize the application
 async function initializeDraft() {
     try {
-        // Show user selection modal first
+        // Initialize event listeners first
+        setupEventListeners();
+        
+        // Show user selection modal
         userSelectionModal.show();
         
         // Load players from CSV
@@ -65,9 +68,6 @@ async function initializeDraft() {
         
         // Initialize statistics
         initializeStatistics();
-        
-        // Add event listeners
-        setupEventListeners();
         
         console.log('Draft initialized successfully');
     } catch (error) {
@@ -107,6 +107,7 @@ function parseAndMergePlayerData(playerPoolText, adpText) {
 
 // Handle user selection
 function handleUserSelection(role) {
+    console.log('User selected role:', role); // Debug log
     currentUser = role;
     isCommissioner = role === 'commish';
     
@@ -691,8 +692,11 @@ function makePickFromPool(playerName) {
 function setupEventListeners() {
     // User selection
     document.querySelectorAll('[data-role]').forEach(button => {
-        button.addEventListener('click', () => {
-            handleUserSelection(button.dataset.role);
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const role = button.getAttribute('data-role');
+            console.log('Button clicked, role:', role); // Debug log
+            handleUserSelection(role);
         });
     });
     
@@ -749,16 +753,6 @@ function setupEventListeners() {
     
     document.getElementById('saveSettingsBtn').addEventListener('click', saveDraftSettings);
     
-    // Export and Reset buttons
-    document.getElementById('exportBtn').addEventListener('click', exportDraftResults);
-    document.getElementById('resetBtn').addEventListener('click', () => {
-        if (isCommissioner) {
-            resetDraft();
-        } else {
-            alert('Only the commissioner can reset the draft');
-        }
-    });
-    
     // Export buttons
     document.getElementById('exportBoardBtn').addEventListener('click', exportDraftBoard);
     document.getElementById('exportPoolBtn').addEventListener('click', exportPlayerPool);
@@ -774,6 +768,16 @@ function setupEventListeners() {
     // Search and sort
     document.getElementById('historySearch').addEventListener('input', searchDraftHistory);
     document.getElementById('sortBy').addEventListener('change', updatePlayerPool);
+    
+    // Export and Reset buttons
+    document.getElementById('exportBtn').addEventListener('click', exportDraftResults);
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        if (isCommissioner) {
+            resetDraft();
+        } else {
+            alert('Only the commissioner can reset the draft');
+        }
+    });
 }
 
 // End draft
