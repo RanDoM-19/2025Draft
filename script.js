@@ -1,7 +1,26 @@
 // Add Chart.js for statistics
 document.head.innerHTML += '<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>';
 
-// Global variables
+// Constants
+const CONSTANTS = {
+    TOTAL_ROUNDS: 12,
+    TEAMS_PER_ROUND: 12,
+    TOTAL_PICKS: 144,
+    DEFAULT_TIMER: 60,
+    MAX_TIMER: 300,
+    MIN_TIMER: 30,
+    DEFAULT_ADP: 999,
+    CHART_COLORS: {
+        QB: '#FF6384',
+        RB: '#36A2EB',
+        WR: '#FFCE56',
+        TE: '#4BC0C0',
+        K: '#9966FF',
+        DEF: '#FF9F40'
+    }
+};
+
+// Global variables with error checking
 let players = [];
 let currentPick = 1;
 let draftTimer = null;
@@ -10,113 +29,293 @@ let draftHistory = [];
 let chatMessages = [];
 let currentUser = null;
 let isCommissioner = false;
-let draftOrder = {}; // Stores the original team for each pick
+let draftOrder = {};
 let positionChart = null;
 let teamChart = null;
+let isInitialized = false;
 
-// DOM Elements
-const draftBoard = document.getElementById('draftBoard');
-const playerPool = document.getElementById('playerPool');
-const teamRosters = document.getElementById('teamRosters');
-const draftTimerDisplay = document.getElementById('draftTimer');
-const chatMessagesContainer = document.getElementById('chatMessages');
-const chatInput = document.getElementById('chatInput');
-const playerSearch = document.getElementById('playerSearch');
-const positionFilter = document.getElementById('positionFilter');
-const draftHistoryList = document.getElementById('draftHistoryList');
-const settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
-const pickModal = new bootstrap.Modal(document.getElementById('pickModal'));
-const userSelectionModal = new bootstrap.Modal(document.getElementById('userSelectionModal'));
-const currentUserDisplay = document.getElementById('currentUser');
-const settingsBtn = document.getElementById('settingsBtn');
+// DOM Elements with error checking
+const DOM = {
+    draftBoard: document.getElementById('draftBoard'),
+    playerPool: document.getElementById('playerPool'),
+    teamRosters: document.getElementById('teamRosters'),
+    draftTimerDisplay: document.getElementById('draftTimer'),
+    chatMessagesContainer: document.getElementById('chatMessages'),
+    chatInput: document.getElementById('chatInput'),
+    playerSearch: document.getElementById('playerSearch'),
+    positionFilter: document.getElementById('positionFilter'),
+    draftHistoryList: document.getElementById('draftHistoryList'),
+    currentUserDisplay: document.getElementById('currentUser'),
+    settingsBtn: document.getElementById('settingsBtn'),
+    historySearch: document.getElementById('historySearch'),
+    sortBy: document.getElementById('sortBy')
+};
+
+// Initialize Bootstrap modals with error handling
+const MODALS = {
+    settings: new bootstrap.Modal(document.getElementById('settingsModal')),
+    pick: new bootstrap.Modal(document.getElementById('pickModal')),
+    userSelection: new bootstrap.Modal(document.getElementById('userSelectionModal'))
+};
 
 // Available teams
 const availableTeams = ['94Sleeper', 'samdecker', 'JoshAllenFuksUrTeam', 'JustinBondi'];
 
-// Initialize the application
+// Error handling utility
+const ErrorHandler = {
+    log: (error, context) => {
+        console.error(`Error in ${context}:`, error);
+        // Could add error reporting service here
+    },
+    show: (message) => {
+        alert(`Error: ${message}`);
+    }
+};
+
+// Storage utility
+const Storage = {
+    get: (key, defaultValue = null) => {
+        try {
+            const value = localStorage.getItem(key);
+            return value ? JSON.parse(value) : defaultValue;
+        } catch (error) {
+            ErrorHandler.log(error, 'Storage.get');
+            return defaultValue;
+        }
+    },
+    set: (key, value) => {
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+            return true;
+        } catch (error) {
+            ErrorHandler.log(error, 'Storage.set');
+            return false;
+        }
+    }
+};
+
+// Initialize the application with error handling
 async function initializeDraft() {
+    console.log('Starting draft initialization...');
+    
+    if (isInitialized) {
+        console.warn('Draft already initialized');
+        return;
+    }
+
     try {
+        // Verify DOM elements
+        console.log('Verifying DOM elements...');
+        const missingElements = Object.entries(DOM)
+            .filter(([_, element]) => !element)
+            .map(([name]) => name);
+            
+        if (missingElements.length > 0) {
+            throw new Error(`Missing DOM elements: ${missingElements.join(', ')}`);
+        }
+
+        // Verify modals
+        console.log('Verifying modals...');
+        const missingModals = Object.entries(MODALS)
+            .filter(([_, modal]) => !modal)
+            .map(([name]) => name);
+            
+        if (missingModals.length > 0) {
+            throw new Error(`Missing modals: ${missingModals.join(', ')}`);
+        }
+
         // Initialize event listeners first
+        console.log('Setting up event listeners...');
         setupEventListeners();
         
         // Show user selection modal
-        userSelectionModal.show();
+        console.log('Showing user selection modal...');
+        MODALS.userSelection.show();
         
-        // Load players from CSV
-        const [playerPoolResponse, adpResponse] = await Promise.all([
-            fetch('google_sheets_player_pool.csv'),
-            fetch('adp.csv')
-        ]);
-        
-        const playerPoolText = await playerPoolResponse.text();
-        const adpText = await adpResponse.text();
-        
-        // Parse and merge player data with ADP
-        players = parseAndMergePlayerData(playerPoolText, adpText);
-        
+        // Load players from CSV with timeout
+        console.log('Loading player data...');
+        const loadTimeout = setTimeout(() => {
+            ErrorHandler.show('Loading players timed out. Please refresh the page.');
+        }, 10000);
+
+        try {
+            // First try to load from localStorage backup
+            const backupPlayers = Storage.get('backupPlayers');
+            if (backupPlayers && backupPlayers.length > 0) {
+                console.log('Loading players from backup...');
+                players = backupPlayers;
+                console.log(`Loaded ${players.length} players from backup`);
+            } else {
+                console.log('No backup found, loading from CSV files...');
+                
+                // Load CSV files with correct paths
+                const playerPoolPath = 'google_sheets_player_pool.csv';
+                const adpPath = 'Adp startup Apr 24 - Sep 05.csv';
+                
+                console.log('Attempting to load files:', { playerPoolPath, adpPath });
+                
+                const [playerPoolResponse, adpResponse] = await Promise.all([
+                    fetch(playerPoolPath).catch(error => {
+                        console.error('Error loading player pool:', error);
+                        throw new Error(`Failed to load player pool: ${error.message}`);
+                    }),
+                    fetch(adpPath).catch(error => {
+                        console.error('Error loading ADP data:', error);
+                        throw new Error(`Failed to load ADP data: ${error.message}`);
+                    })
+                ]);
+
+                if (!playerPoolResponse.ok) {
+                    throw new Error(`Failed to load player pool: ${playerPoolResponse.status} ${playerPoolResponse.statusText}`);
+                }
+                
+                if (!adpResponse.ok) {
+                    throw new Error(`Failed to load ADP data: ${adpResponse.status} ${adpResponse.statusText}`);
+                }
+                
+                const playerPoolText = await playerPoolResponse.text();
+                const adpText = await adpResponse.text();
+                
+                if (!playerPoolText || !adpText) {
+                    throw new Error('One or both CSV files are empty');
+                }
+                
+                console.log('CSV files loaded successfully');
+                console.log('Player pool text length:', playerPoolText.length);
+                console.log('ADP text length:', adpText.length);
+                
+                // Parse and merge player data with ADP
+                players = parseAndMergePlayerData(playerPoolText, adpText);
+                
+                if (players.length === 0) {
+                    throw new Error('No players loaded from CSV files');
+                }
+                
+                console.log(`Successfully loaded ${players.length} players`);
+                
+                // Save backup
+                Storage.set('backupPlayers', players);
+            }
+        } catch (error) {
+            clearTimeout(loadTimeout);
+            throw error;
+        }
+
         // Load draft settings
+        console.log('Loading draft settings...');
         loadDraftSettings();
         
         // Initialize the draft board
+        console.log('Initializing draft board...');
         initializeDraftBoard();
         
         // Initialize the player pool
+        console.log('Initializing player pool...');
         updatePlayerPool();
         
         // Initialize team rosters
+        console.log('Initializing team rosters...');
         initializeTeamRosters();
         
         // Initialize statistics
+        console.log('Initializing statistics...');
         initializeStatistics();
         
+        isInitialized = true;
         console.log('Draft initialized successfully');
     } catch (error) {
-        console.error('Error initializing draft:', error);
-        alert('Error initializing draft. Please check the console for details.');
+        ErrorHandler.log(error, 'initializeDraft');
+        ErrorHandler.show(`Failed to initialize draft: ${error.message}`);
     }
 }
 
-// Parse and merge player data with ADP
+// Parse and merge player data with ADP with error handling
 function parseAndMergePlayerData(playerPoolText, adpText) {
-    const playerPoolLines = playerPoolText.split('\n');
-    const adpLines = adpText.split('\n');
-    
-    // Create ADP lookup map
-    const adpMap = new Map();
-    adpLines.slice(1).forEach(line => {
-        const [name, adp] = line.split(',');
-        if (name && adp) {
-            adpMap.set(name.trim(), parseFloat(adp.trim()));
+    console.log('Parsing player data...');
+    try {
+        // Validate input
+        if (!playerPoolText || !adpText) {
+            throw new Error('Missing input data');
         }
-    });
-    
-    // Parse player pool and add ADP
-    return playerPoolLines.slice(1).map(line => {
-        const values = line.split(',');
-        const name = values[0].trim();
-        return {
-            name,
-            position: values[1].trim(),
-            nflTeam: values[2].trim(),
-            originalOwner: values[3].trim(),
-            adp: adpMap.get(name) || 999, // Default to 999 if no ADP found
-            drafted: false
-        };
-    });
+
+        const playerPoolLines = playerPoolText.split('\n').filter(line => line.trim());
+        const adpLines = adpText.split('\n').filter(line => line.trim());
+        
+        console.log(`Player pool lines: ${playerPoolLines.length}`);
+        console.log(`ADP lines: ${adpLines.length}`);
+        
+        if (playerPoolLines.length <= 1) {
+            throw new Error('Player pool CSV is empty or missing header');
+        }
+        
+        // Create ADP lookup map
+        const adpMap = new Map();
+        adpLines.slice(1).forEach(line => {
+            const values = line.split(',').map(item => item.trim());
+            if (values.length >= 4) {
+                const name = values[1]; // id_name column
+                const adp = parseFloat(values[3]); // adp_adp column
+                if (name && !isNaN(adp)) {
+                    adpMap.set(name, adp);
+                }
+            }
+        });
+        
+        console.log(`ADP entries: ${adpMap.size}`);
+        
+        // Parse player pool and add ADP
+        const parsedPlayers = playerPoolLines.slice(1).map(line => {
+            const values = line.split(',').map(item => item.trim().replace(/^"|"$/g, '')); // Remove quotes
+            if (values.length < 4) {
+                console.warn('Invalid player data:', line);
+                return null;
+            }
+            const name = values[0];
+            return {
+                name,
+                position: values[1] || 'Unknown',
+                nflTeam: values[2] || 'Unknown',
+                originalOwner: values[3] || 'Unknown',
+                adp: adpMap.get(name) || CONSTANTS.DEFAULT_ADP,
+                drafted: false,
+                timestamp: new Date().toISOString()
+            };
+        }).filter(player => player && player.name); // Filter out empty entries
+        
+        console.log(`Parsed players: ${parsedPlayers.length}`);
+        
+        if (parsedPlayers.length === 0) {
+            throw new Error('No valid players found in CSV data');
+        }
+        
+        // Save backup of players
+        Storage.set('backupPlayers', parsedPlayers);
+        
+        return parsedPlayers;
+    } catch (error) {
+        ErrorHandler.log(error, 'parseAndMergePlayerData');
+        console.error('Error parsing player data:', error);
+        return [];
+    }
 }
 
-// Handle user selection
+// Handle user selection with validation
 function handleUserSelection(role) {
-    console.log('User selected role:', role); // Debug log
+    if (!role || !availableTeams.includes(role) && role !== 'commish') {
+        ErrorHandler.show('Invalid role selected');
+        return;
+    }
+
+    console.log('User selected role:', role);
     currentUser = role;
     isCommissioner = role === 'commish';
     
     // Update UI
-    currentUserDisplay.textContent = role;
-    settingsBtn.style.display = isCommissioner ? 'block' : 'none';
+    DOM.currentUserDisplay.textContent = role;
+    DOM.settingsBtn.style.display = isCommissioner ? 'block' : 'none';
     
     // Hide user selection modal
-    userSelectionModal.hide();
+    MODALS.userSelection.hide();
     
     // Start the draft timer if commissioner
     if (isCommissioner) {
@@ -125,16 +324,29 @@ function handleUserSelection(role) {
     
     // Add welcome message
     addChatMessage(`${role} has joined the draft`);
+    
+    // Save user selection
+    Storage.set('currentUser', role);
 }
 
-// Initialize the draft board
+// Initialize the draft board with validation
 function initializeDraftBoard() {
-    const tbody = draftBoard.querySelector('tbody');
+    if (!DOM.draftBoard) {
+        ErrorHandler.log(new Error('Draft board element not found'), 'initializeDraftBoard');
+        return;
+    }
+
+    const tbody = DOM.draftBoard.querySelector('tbody');
+    if (!tbody) {
+        ErrorHandler.log(new Error('Draft board tbody not found'), 'initializeDraftBoard');
+        return;
+    }
+
     tbody.innerHTML = '';
     
-    // Create 12 rounds of picks
-    for (let round = 1; round <= 12; round++) {
-        for (let pick = 1; pick <= 12; pick++) {
+    // Create rounds of picks
+    for (let round = 1; round <= CONSTANTS.TOTAL_ROUNDS; round++) {
+        for (let pick = 1; pick <= CONSTANTS.TEAMS_PER_ROUND; pick++) {
             const row = document.createElement('tr');
             row.setAttribute('data-round', round);
             row.setAttribute('data-pick', pick);
@@ -158,22 +370,62 @@ function initializeDraftBoard() {
     }
 }
 
-// Update the player pool
+// Update the player pool with optimization and debugging
 function updatePlayerPool() {
-    const tbody = playerPool.querySelector('tbody');
-    tbody.innerHTML = '';
+    console.log('Updating player pool...');
     
-    const searchTerm = playerSearch.value.toLowerCase();
-    const positionFilterValue = positionFilter.value;
-    const sortBy = document.getElementById('sortBy').value;
+    if (!DOM.playerPool) {
+        console.error('Player pool element not found');
+        return;
+    }
+
+    const tbody = DOM.playerPool.querySelector('tbody');
+    if (!tbody) {
+        console.error('Player pool tbody not found');
+        return;
+    }
+
+    if (!Array.isArray(players)) {
+        console.error('Players array is invalid');
+        return;
+    }
+
+    console.log(`Total players: ${players.length}`);
+    console.log(`Drafted players: ${players.filter(p => p.drafted).length}`);
     
-    let filteredPlayers = players.filter(player => {
-        const matchesSearch = player.name.toLowerCase().includes(searchTerm);
-        const matchesPosition = positionFilterValue === 'ALL' || player.position === positionFilterValue;
-        return matchesSearch && matchesPosition && !player.drafted;
+    const searchTerm = DOM.playerSearch ? DOM.playerSearch.value.toLowerCase() : '';
+    const positionFilterValue = DOM.positionFilter ? DOM.positionFilter.value : 'ALL';
+    const sortBy = DOM.sortBy ? DOM.sortBy.value : 'adp';
+    
+    console.log('Filter criteria:', {
+        searchTerm,
+        positionFilterValue,
+        sortBy
     });
     
-    // Sort players
+    // Use Set for faster lookups
+    const searchTerms = new Set(searchTerm.split(' ').filter(term => term.length > 0));
+    
+    let filteredPlayers = players.filter(player => {
+        if (!player || player.drafted) {
+            return false;
+        }
+        
+        const matchesSearch = searchTerms.size === 0 || 
+            Array.from(searchTerms).every(term => 
+                player.name.toLowerCase().includes(term) ||
+                player.position.toLowerCase().includes(term) ||
+                player.nflTeam.toLowerCase().includes(term)
+            );
+            
+        const matchesPosition = positionFilterValue === 'ALL' || player.position === positionFilterValue;
+        
+        return matchesSearch && matchesPosition;
+    });
+    
+    console.log(`Filtered players: ${filteredPlayers.length}`);
+    
+    // Sort players with optimization
     filteredPlayers.sort((a, b) => {
         switch (sortBy) {
             case 'adp':
@@ -181,11 +433,14 @@ function updatePlayerPool() {
             case 'name':
                 return a.name.localeCompare(b.name);
             case 'position':
-                return a.position.localeCompare(b.position);
+                return a.position.localeCompare(b.position) || a.name.localeCompare(b.name);
             default:
                 return 0;
         }
     });
+    
+    // Use DocumentFragment for better performance
+    const fragment = document.createDocumentFragment();
     
     filteredPlayers.forEach(player => {
         const row = document.createElement('tr');
@@ -194,62 +449,77 @@ function updatePlayerPool() {
             <td>${player.position}</td>
             <td>${player.nflTeam}</td>
             <td>${player.originalOwner}</td>
-            <td>${player.adp === 999 ? 'N/A' : player.adp}</td>
+            <td>${player.adp === CONSTANTS.DEFAULT_ADP ? 'N/A' : player.adp}</td>
             <td>
                 <button class="btn btn-sm btn-primary" onclick="makePickFromPool('${player.name}')">
                     Draft
                 </button>
             </td>
         `;
-        tbody.appendChild(row);
+        fragment.appendChild(row);
     });
+    
+    tbody.innerHTML = '';
+    tbody.appendChild(fragment);
+    
+    console.log('Player pool updated successfully');
 }
 
-// Initialize team rosters
+// Initialize team rosters with validation
 function initializeTeamRosters() {
-    const container = document.getElementById('teamRosters');
-    container.innerHTML = '';
+    if (!DOM.teamRosters) return;
+
+    DOM.teamRosters.innerHTML = '';
     
-    for (let i = 1; i <= 12; i++) {
+    availableTeams.forEach(team => {
         const teamCard = document.createElement('div');
         teamCard.className = 'col-md-4 mb-3';
         teamCard.innerHTML = `
             <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Team ${i}</h5>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">${team}</h5>
+                    <span class="badge bg-primary" id="${team}PickCount">0 picks</span>
                 </div>
                 <div class="card-body">
-                    <ul class="list-group list-group-flush" id="team${i}Roster">
+                    <ul class="list-group list-group-flush" id="team${team}Roster">
                     </ul>
                 </div>
             </div>
         `;
-        container.appendChild(teamCard);
-    }
+        DOM.teamRosters.appendChild(teamCard);
+    });
 }
 
-// Load draft settings
+// Load draft settings with validation
 function loadDraftSettings() {
-    const settings = JSON.parse(localStorage.getItem('draftSettings')) || {
-        timerDuration: 60,
+    const settings = Storage.get('draftSettings', {
+        timerDuration: CONSTANTS.DEFAULT_TIMER,
         draftOrder: {}
-    };
+    });
     
-    document.getElementById('timerDuration').value = settings.timerDuration;
-    timeRemaining = settings.timerDuration;
+    const timerDuration = Math.min(
+        Math.max(settings.timerDuration, CONSTANTS.MIN_TIMER),
+        CONSTANTS.MAX_TIMER
+    );
+    
+    document.getElementById('timerDuration').value = timerDuration;
+    timeRemaining = timerDuration;
     draftOrder = settings.draftOrder;
     
-    // Initialize draft order table
     initializeDraftOrderTable();
 }
 
-// Initialize draft order table
+// Initialize draft order table with validation
 function initializeDraftOrderTable() {
     const tbody = document.querySelector('#draftOrderTable tbody');
+    if (!tbody) return;
+
     tbody.innerHTML = '';
     
-    for (let round = 1; round <= 12; round++) {
-        for (let pick = 1; pick <= 12; pick++) {
+    const fragment = document.createDocumentFragment();
+    
+    for (let round = 1; round <= CONSTANTS.TOTAL_ROUNDS; round++) {
+        for (let pick = 1; pick <= CONSTANTS.TEAMS_PER_ROUND; pick++) {
             const row = document.createElement('tr');
             const currentTeam = draftOrder[`${round}-${pick}`] || '';
             
@@ -265,14 +535,21 @@ function initializeDraftOrderTable() {
                     </select>
                 </td>
             `;
-            tbody.appendChild(row);
+            fragment.appendChild(row);
         }
     }
+    
+    tbody.appendChild(fragment);
 }
 
-// Save draft settings
+// Save draft settings with validation
 function saveDraftSettings() {
     const timerDuration = parseInt(document.getElementById('timerDuration').value);
+    
+    if (isNaN(timerDuration) || timerDuration < CONSTANTS.MIN_TIMER || timerDuration > CONSTANTS.MAX_TIMER) {
+        ErrorHandler.show(`Timer duration must be between ${CONSTANTS.MIN_TIMER} and ${CONSTANTS.MAX_TIMER} seconds`);
+        return;
+    }
     
     // Collect draft order assignments
     const newDraftOrder = {};
@@ -285,12 +562,32 @@ function saveDraftSettings() {
         }
     });
     
+    // Validate draft order
+    const teamPickCounts = {};
+    Object.values(newDraftOrder).forEach(team => {
+        teamPickCounts[team] = (teamPickCounts[team] || 0) + 1;
+    });
+    
+    const expectedPicksPerTeam = CONSTANTS.TOTAL_ROUNDS;
+    const invalidTeams = Object.entries(teamPickCounts)
+        .filter(([_, count]) => count !== expectedPicksPerTeam)
+        .map(([team]) => team);
+    
+    if (invalidTeams.length > 0) {
+        ErrorHandler.show(`Invalid draft order: ${invalidTeams.join(', ')} must have exactly ${expectedPicksPerTeam} picks`);
+        return;
+    }
+    
     // Save settings
     const settings = {
         timerDuration,
         draftOrder: newDraftOrder
     };
-    localStorage.setItem('draftSettings', JSON.stringify(settings));
+    
+    if (!Storage.set('draftSettings', settings)) {
+        ErrorHandler.show('Failed to save settings');
+        return;
+    }
     
     // Update global variables
     timeRemaining = timerDuration;
@@ -303,43 +600,75 @@ function saveDraftSettings() {
     updateTimerDisplay();
     
     // Hide modal
-    settingsModal.hide();
+    MODALS.settings.hide();
     
     // Add chat message
     addChatMessage('Commissioner has updated draft settings');
 }
 
-// Make a draft pick
+// Make a draft pick with validation
 function makePick(round, pick, playerName) {
+    if (!playerName) {
+        ErrorHandler.show('Please select a player');
+        return;
+    }
+
     // Check if user is authorized to make this pick
     const originalTeam = draftOrder[`${round}-${pick}`];
     if (!isCommissioner && currentUser !== originalTeam) {
-        alert('You are not authorized to make this pick');
+        ErrorHandler.show('You are not authorized to make this pick');
         return;
     }
     
     const player = players.find(p => p.name === playerName);
-    if (!player) return;
+    if (!player) {
+        ErrorHandler.show('Player not found');
+        return;
+    }
+    
+    if (player.drafted) {
+        ErrorHandler.show('Player has already been drafted');
+        return;
+    }
     
     // Update the draft board
-    const row = draftBoard.querySelector(`tr[data-round="${round}"][data-pick="${pick}"]`);
+    const row = DOM.draftBoard.querySelector(`tr[data-round="${round}"][data-pick="${pick}"]`);
     if (row) {
         row.querySelector('td:nth-child(4)').textContent = player.name;
         row.querySelector('td:nth-child(5)').textContent = player.position;
         row.querySelector('td:nth-child(6)').textContent = player.originalOwner;
-        row.querySelector('td:nth-child(7)').textContent = player.adp === 999 ? 'N/A' : player.adp;
+        row.querySelector('td:nth-child(7)').textContent = player.adp === CONSTANTS.DEFAULT_ADP ? 'N/A' : player.adp;
     }
     
     // Update the player's status
     player.drafted = true;
+    player.draftTimestamp = new Date().toISOString();
     
     // Add to team roster
     const teamRoster = document.getElementById(`team${originalTeam}Roster`);
     if (teamRoster) {
         const li = document.createElement('li');
         li.className = 'list-group-item';
-        li.textContent = `${player.name} (${player.position}) - ADP: ${player.adp === 999 ? 'N/A' : player.adp}`;
+        li.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>${player.name}</strong> (${player.position})
+                    <br>
+                    <small class="text-muted">ADP: ${player.adp === CONSTANTS.DEFAULT_ADP ? 'N/A' : player.adp}</small>
+                </div>
+                <button class="btn btn-sm btn-outline-danger" onclick="undoPick('${player.name}')">
+                    Undo
+                </button>
+            </div>
+        `;
         teamRoster.appendChild(li);
+        
+        // Update pick count
+        const pickCount = document.getElementById(`${originalTeam}PickCount`);
+        if (pickCount) {
+            const count = parseInt(pickCount.textContent) + 1;
+            pickCount.textContent = `${count} picks`;
+        }
     }
     
     // Add to draft history
@@ -349,7 +678,8 @@ function makePick(round, pick, playerName) {
         player: player.name,
         position: player.position,
         team: originalTeam,
-        adp: player.adp
+        adp: player.adp,
+        timestamp: new Date().toISOString()
     });
     updateDraftHistory();
     
@@ -357,31 +687,120 @@ function makePick(round, pick, playerName) {
     updatePlayerPool();
     
     // Add chat message
-    addChatMessage(`${originalTeam} selected ${player.name} (${player.position}) - ADP: ${player.adp === 999 ? 'N/A' : player.adp}`);
+    addChatMessage(`${originalTeam} selected ${player.name} (${player.position}) - ADP: ${player.adp === CONSTANTS.DEFAULT_ADP ? 'N/A' : player.adp}`);
     
     // Move to next pick
     currentPick++;
-    if (currentPick > 144) { // 12 teams * 12 rounds
+    if (currentPick > CONSTANTS.TOTAL_PICKS) {
         endDraft();
     } else if (isCommissioner) {
         startDraftTimer();
     }
     
-    // Update statistics after making a pick
+    // Update statistics
     updateStatistics();
+    
+    // Save draft state
+    saveDraftState();
 }
 
-// Update draft history
-function updateDraftHistory() {
-    const list = document.getElementById('draftHistoryList');
-    list.innerHTML = '';
+// Undo last pick
+function undoPick(playerName) {
+    if (!isCommissioner) {
+        ErrorHandler.show('Only the commissioner can undo picks');
+        return;
+    }
     
-    draftHistory.forEach(pick => {
-        const li = document.createElement('li');
-        li.className = 'list-group-item';
-        li.textContent = `Round ${pick.round}, Pick ${pick.pick}: ${pick.team} selected ${pick.player} (${pick.position}) - ADP: ${pick.adp === 999 ? 'N/A' : pick.adp}`;
-        list.appendChild(li);
+    const lastPick = draftHistory.pop();
+    if (!lastPick) {
+        ErrorHandler.show('No picks to undo');
+        return;
+    }
+    
+    const player = players.find(p => p.name === playerName);
+    if (player) {
+        player.drafted = false;
+        delete player.draftTimestamp;
+    }
+    
+    // Update draft board
+    const row = DOM.draftBoard.querySelector(`tr[data-round="${lastPick.round}"][data-pick="${lastPick.pick}"]`);
+    if (row) {
+        row.querySelector('td:nth-child(4)').textContent = '';
+        row.querySelector('td:nth-child(5)').textContent = '';
+        row.querySelector('td:nth-child(6)').textContent = '';
+        row.querySelector('td:nth-child(7)').textContent = '';
+    }
+    
+    // Update team roster
+    const teamRoster = document.getElementById(`team${lastPick.team}Roster`);
+    if (teamRoster) {
+        const lastItem = teamRoster.lastElementChild;
+        if (lastItem) {
+            lastItem.remove();
+        }
+        
+        // Update pick count
+        const pickCount = document.getElementById(`${lastPick.team}PickCount`);
+        if (pickCount) {
+            const count = parseInt(pickCount.textContent) - 1;
+            pickCount.textContent = `${count} picks`;
+        }
+    }
+    
+    // Update current pick
+    currentPick--;
+    
+    // Update player pool
+    updatePlayerPool();
+    
+    // Update statistics
+    updateStatistics();
+    
+    // Add chat message
+    addChatMessage(`Commissioner undid pick: ${playerName}`);
+    
+    // Save draft state
+    saveDraftState();
+}
+
+// Save draft state
+function saveDraftState() {
+    const state = {
+        currentPick,
+        draftHistory,
+        players: players.map(p => ({
+            name: p.name,
+            drafted: p.drafted,
+            draftTimestamp: p.draftTimestamp
+        }))
+    };
+    
+    Storage.set('draftState', state);
+}
+
+// Load draft state
+function loadDraftState() {
+    const state = Storage.get('draftState');
+    if (!state) return;
+    
+    currentPick = state.currentPick;
+    draftHistory = state.draftHistory;
+    
+    // Update player drafted status
+    state.players.forEach(p => {
+        const player = players.find(pl => pl.name === p.name);
+        if (player) {
+            player.drafted = p.drafted;
+            player.draftTimestamp = p.draftTimestamp;
+        }
     });
+    
+    // Update UI
+    initializeDraftBoard();
+    updatePlayerPool();
+    updateDraftHistory();
+    updateStatistics();
 }
 
 // Start the draft timer
@@ -411,7 +830,7 @@ function startDraftTimer() {
 function updateTimerDisplay() {
     const minutes = Math.floor(timeRemaining / 60);
     const seconds = timeRemaining % 60;
-    draftTimerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    DOM.draftTimerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 // Add chat message
@@ -427,16 +846,16 @@ function addChatMessage(message) {
         <small class="text-muted">${chatMessages[chatMessages.length - 1].timestamp}</small>
         <div>${message}</div>
     `;
-    chatMessagesContainer.appendChild(messageElement);
-    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    DOM.chatMessagesContainer.appendChild(messageElement);
+    DOM.chatMessagesContainer.scrollTop = DOM.chatMessagesContainer.scrollHeight;
 }
 
 // Send chat message
 function sendChatMessage() {
-    const message = chatInput.value.trim();
+    const message = DOM.chatInput.value.trim();
     if (message) {
         addChatMessage(`You: ${message}`);
-        chatInput.value = '';
+        DOM.chatInput.value = '';
     }
 }
 
@@ -472,7 +891,7 @@ function resetDraft() {
         initializeTeamRosters();
         updateDraftHistory();
         chatMessages = [];
-        chatMessagesContainer.innerHTML = '';
+        DOM.chatMessagesContainer.innerHTML = '';
         startDraftTimer();
     }
 }
@@ -488,12 +907,12 @@ function initializeStatistics() {
             datasets: [{
                 data: [0, 0, 0, 0, 0, 0],
                 backgroundColor: [
-                    '#FF6384',
-                    '#36A2EB',
-                    '#FFCE56',
-                    '#4BC0C0',
-                    '#9966FF',
-                    '#FF9F40'
+                    CONSTANTS.CHART_COLORS.QB,
+                    CONSTANTS.CHART_COLORS.RB,
+                    CONSTANTS.CHART_COLORS.WR,
+                    CONSTANTS.CHART_COLORS.TE,
+                    CONSTANTS.CHART_COLORS.K,
+                    CONSTANTS.CHART_COLORS.DEF
                 ]
             }]
         }
@@ -508,7 +927,7 @@ function initializeStatistics() {
             datasets: [{
                 label: 'Players Drafted',
                 data: availableTeams.map(() => 0),
-                backgroundColor: '#36A2EB'
+                backgroundColor: CONSTANTS.CHART_COLORS.QB
             }]
         },
         options: {
@@ -550,18 +969,18 @@ function updateStatistics() {
     teamChart.update();
 
     // Update draft progress
-    const progress = (draftHistory.length / 144) * 100;
+    const progress = (draftHistory.length / CONSTANTS.TOTAL_PICKS) * 100;
     const progressBar = document.getElementById('draftProgress');
     progressBar.style.width = `${progress}%`;
     progressBar.setAttribute('aria-valuenow', progress);
     
     document.getElementById('draftProgressText').textContent = 
-        `${draftHistory.length} of 144 picks completed (${Math.round(progress)}%)`;
+        `${draftHistory.length} of ${CONSTANTS.TOTAL_PICKS} picks completed (${Math.round(progress)}%)`;
 }
 
 // Export draft board
 function exportDraftBoard() {
-    const rows = Array.from(draftBoard.querySelectorAll('tbody tr')).map(row => {
+    const rows = Array.from(DOM.draftBoard.querySelectorAll('tbody tr')).map(row => {
         return Array.from(row.cells).map(cell => cell.textContent.trim());
     });
     
@@ -653,7 +1072,7 @@ function printDraftBoard() {
             </head>
             <body>
                 <h1>Draft Board</h1>
-                ${draftBoard.outerHTML}
+                ${DOM.draftBoard.outerHTML}
             </body>
         </html>
     `);
@@ -665,13 +1084,13 @@ function printDraftBoard() {
 function clearChat() {
     if (confirm('Are you sure you want to clear the chat history?')) {
         chatMessages = [];
-        chatMessagesContainer.innerHTML = '';
+        DOM.chatMessagesContainer.innerHTML = '';
     }
 }
 
 // Search draft history
 function searchDraftHistory() {
-    const searchTerm = document.getElementById('historySearch').value.toLowerCase();
+    const searchTerm = DOM.historySearch.value.toLowerCase();
     const filteredHistory = draftHistory.filter(pick => 
         pick.player.toLowerCase().includes(searchTerm) ||
         pick.team.toLowerCase().includes(searchTerm) ||
@@ -709,7 +1128,7 @@ function setupEventListeners() {
             
             // Check if user is authorized to make this pick
             if (!isCommissioner && currentUser !== originalTeam) {
-                alert('You are not authorized to make this pick');
+                ErrorHandler.show('You are not authorized to make this pick');
                 return;
             }
             
@@ -720,34 +1139,34 @@ function setupEventListeners() {
             availablePlayers.forEach(player => {
                 const option = document.createElement('option');
                 option.value = player.name;
-                option.textContent = `${player.name} (${player.position}) - ADP: ${player.adp === 999 ? 'N/A' : player.adp}`;
+                option.textContent = `${player.name} (${player.position}) - ADP: ${player.adp === CONSTANTS.DEFAULT_ADP ? 'N/A' : player.adp}`;
                 select.appendChild(option);
             });
             
             document.getElementById('makePickBtn').onclick = () => {
                 makePick(round, pick, select.value);
-                pickModal.hide();
+                MODALS.pick.hide();
             };
             
-            pickModal.show();
+            MODALS.pick.show();
         });
     });
     
     // Player search and filter
-    playerSearch.addEventListener('input', updatePlayerPool);
-    positionFilter.addEventListener('change', updatePlayerPool);
+    DOM.playerSearch.addEventListener('input', updatePlayerPool);
+    DOM.positionFilter.addEventListener('change', updatePlayerPool);
     
     // Chat
-    chatInput.addEventListener('keypress', (e) => {
+    DOM.chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             sendChatMessage();
         }
     });
     
     // Settings (commissioner only)
-    settingsBtn.addEventListener('click', () => {
+    DOM.settingsBtn.addEventListener('click', () => {
         if (isCommissioner) {
-            settingsModal.show();
+            MODALS.settings.show();
         }
     });
     
@@ -766,8 +1185,8 @@ function setupEventListeners() {
     document.getElementById('clearChatBtn').addEventListener('click', clearChat);
     
     // Search and sort
-    document.getElementById('historySearch').addEventListener('input', searchDraftHistory);
-    document.getElementById('sortBy').addEventListener('change', updatePlayerPool);
+    DOM.historySearch.addEventListener('input', searchDraftHistory);
+    DOM.sortBy.addEventListener('change', updatePlayerPool);
     
     // Export and Reset buttons
     document.getElementById('exportBtn').addEventListener('click', exportDraftResults);
@@ -775,7 +1194,7 @@ function setupEventListeners() {
         if (isCommissioner) {
             resetDraft();
         } else {
-            alert('Only the commissioner can reset the draft');
+            ErrorHandler.show('Only the commissioner can reset the draft');
         }
     });
 }
@@ -784,7 +1203,7 @@ function setupEventListeners() {
 function endDraft() {
     clearInterval(draftTimer);
     addChatMessage('Draft completed!');
-    alert('Draft completed! You can now export the results.');
+    ErrorHandler.show('Draft completed! You can now export the results.');
 }
 
 // Initialize the application when the DOM is loaded
