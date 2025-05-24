@@ -23,6 +23,7 @@ const CONSTANTS = {
     MAX_TIMER: 300,
     MIN_TIMER: 30,
     DEFAULT_ADP: 999,
+    AUTO_REFRESH_INTERVAL: 5000, // 5 seconds
     CHART_COLORS: {
         QB: '#FF6384',
         RB: '#36A2EB',
@@ -46,6 +47,7 @@ let draftHistory = [];
 let chatMessages = [];
 let currentUser = null;
 let isCommissioner = false;
+let isLiveDraft = true; // Enable live drafting mode
 
 // Define the actual draft picks as draftable assets
 const draftPicks = [
@@ -155,6 +157,9 @@ const Storage = {
     }
 };
 
+// Add auto-refresh functionality
+let autoRefreshInterval = null;
+
 // Initialize the application with error handling
 async function initializeDraft() {
     console.log('Starting draft initialization...');
@@ -201,6 +206,9 @@ async function initializeDraft() {
         // Show user selection modal
         console.log('Showing user selection modal...');
         MODALS.userSelection.show();
+        
+        // Start auto-refresh for live updates
+        startAutoRefresh();
         
         // Load players from CSV with timeout
         console.log('Loading player data...');
@@ -437,10 +445,16 @@ function initializeDraftBoard() {
             
             const originalTeam = draftPick ? draftPick.nflTeam : 'Unassigned';
             const isMyTeam = currentUser === originalTeam;
+            const isCurrentPick = currentPick === ((round - 1) * CONSTANTS.TEAMS_PER_ROUND + pick);
+            const isOnTheClock = isCurrentPick && (isCommissioner || isMyTeam);
             
-            // Add appropriate class based on team
-            if (isMyTeam) {
-                row.className = 'table-success';
+            // Add appropriate classes based on team and current pick
+            row.className = isMyTeam ? 'table-success' : '';
+            if (isCurrentPick) {
+                row.classList.add('table-primary');
+                if (isOnTheClock) {
+                    row.classList.add('blink');
+                }
             }
             
             row.innerHTML = `
@@ -452,9 +466,11 @@ function initializeDraftBoard() {
                 <td></td>
                 <td></td>
                 <td>
-                    <button class="btn btn-sm btn-primary make-pick" data-round="${round}" data-pick="${pick}">
-                        Make Pick
-                    </button>
+                    ${isOnTheClock ? `
+                        <button class="btn btn-sm btn-primary make-pick" data-round="${round}" data-pick="${pick}">
+                            Make Pick
+                        </button>
+                    ` : ''}
                 </td>
             `;
             tbody.appendChild(row);
@@ -546,9 +562,11 @@ function updatePlayerPool() {
             <td>${item.originalOwner}</td>
             <td>${item.adp === CONSTANTS.DEFAULT_ADP ? 'N/A' : item.adp}</td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="makePickFromPool('${item.name}')" ${isDrafted ? 'disabled' : ''}>
-                    Draft
-                </button>
+                ${!isDrafted && (isCommissioner || isMyTeam) ? `
+                    <button class="btn btn-sm btn-primary" onclick="makePickFromPool('${item.name}')">
+                        Draft
+                    </button>
+                ` : ''}
             </td>
         `;
         fragment.appendChild(row);
@@ -832,9 +850,11 @@ function makePick(round, pick, playerName) {
                     <br>
                     <small class="text-muted">ADP: ${player.adp === CONSTANTS.DEFAULT_ADP ? 'N/A' : player.adp}</small>
                 </div>
-                <button class="btn btn-sm btn-outline-danger" onclick="undoPick('${player.name}')">
-                    Undo
-                </button>
+                ${isCommissioner ? `
+                    <button class="btn btn-sm btn-outline-danger" onclick="undoPick('${player.name}')">
+                        Undo
+                    </button>
+                ` : ''}
             </div>
         `;
         teamRoster.appendChild(li);
@@ -878,6 +898,23 @@ function makePick(round, pick, playerName) {
     
     // Save draft state
     saveDraftState();
+    
+    // Update the draft board to highlight the next pick
+    initializeDraftBoard();
+
+    // Add notification for next team
+    const nextPick = currentPick + 1;
+    if (nextPick <= CONSTANTS.TOTAL_PICKS) {
+        const nextRound = Math.floor(nextPick / CONSTANTS.TEAMS_PER_ROUND) + 1;
+        const nextPickInRound = nextPick % CONSTANTS.TEAMS_PER_ROUND || CONSTANTS.TEAMS_PER_ROUND;
+        const isNextReversed = nextRound % 2 === 0;
+        const pickOrder = isNextReversed ? 
+            [4, 3, 2, 1] : 
+            [1, 2, 3, 4];
+        const nextTeam = availableTeams[pickOrder.indexOf(nextPickInRound)];
+        
+        notifyTeam(nextTeam, `You are on the clock! Round ${nextRound}, Pick ${nextPickInRound}`);
+    }
 }
 
 // Undo last pick
@@ -1395,6 +1432,19 @@ function setupEventListeners() {
             ErrorHandler.show('Only the commissioner can reset the draft');
         }
     });
+
+    // Request notification permission
+    if ('Notification' in window) {
+        Notification.requestPermission();
+    }
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'r') {
+            e.preventDefault();
+            refreshDraftState();
+        }
+    });
 }
 
 // End draft
@@ -1402,6 +1452,63 @@ function endDraft() {
     clearInterval(draftTimer);
     addChatMessage('Draft completed!');
     ErrorHandler.show('Draft completed! You can now export the results.');
+}
+
+// Add auto-refresh functionality
+function startAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+    
+    autoRefreshInterval = setInterval(() => {
+        if (isLiveDraft) {
+            refreshDraftState();
+        }
+    }, CONSTANTS.AUTO_REFRESH_INTERVAL);
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+    }
+}
+
+function refreshDraftState() {
+    // Only refresh if we're not the commissioner and it's not our turn
+    if (isCommissioner) return;
+    
+    const currentRound = Math.floor(currentPick / CONSTANTS.TEAMS_PER_ROUND) + 1;
+    const currentPickInRound = currentPick % CONSTANTS.TEAMS_PER_ROUND || CONSTANTS.TEAMS_PER_ROUND;
+    const isReversed = currentRound % 2 === 0;
+    const pickOrder = isReversed ? 
+        [4, 3, 2, 1] : 
+        [1, 2, 3, 4];
+    const currentTeam = availableTeams[pickOrder.indexOf(currentPickInRound)];
+    
+    if (currentTeam !== currentUser) {
+        // Refresh the draft board and player pool
+        initializeDraftBoard();
+        updatePlayerPool();
+        updateDraftHistory();
+        updateStatistics();
+    }
+}
+
+// Add notification system
+function notifyTeam(team, message) {
+    if (team === currentUser) {
+        // Show browser notification if supported
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Draft Alert', {
+                body: message,
+                icon: '/favicon.ico'
+            });
+        }
+        
+        // Add chat message
+        addChatMessage(`System: ${message}`);
+    }
 }
 
 // Initialize the application when the DOM is loaded
