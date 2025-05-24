@@ -1,5 +1,5 @@
 // Add Chart.js for statistics
-document.head.innerHTML += '<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>';
+document.head.innerHTML += '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>';
 
 // Constants
 const CONSTANTS = {
@@ -395,13 +395,22 @@ function initializeDraftBoard() {
 
     tbody.innerHTML = '';
     
-    // Create rounds of picks
+    // Create rounds of picks (4 picks per round)
     for (let round = 1; round <= CONSTANTS.TOTAL_ROUNDS; round++) {
         for (let pick = 1; pick <= CONSTANTS.TEAMS_PER_ROUND; pick++) {
             const row = document.createElement('tr');
             row.setAttribute('data-round', round);
             row.setAttribute('data-pick', pick);
-            const originalTeam = draftOrder[`${round}-${pick}`] || 'Unassigned';
+            
+            // Find the corresponding draft pick
+            const draftPick = draftPicks.find(p => {
+                const year = round <= 5 ? '2025' : '2026';
+                const roundNum = round <= 5 ? round : round - 5;
+                return p.name.includes(`${year} ${roundNum}${roundNum === 1 ? 'st' : roundNum === 2 ? 'nd' : roundNum === 3 ? 'rd' : 'th'} Rd`);
+            });
+            
+            const originalTeam = draftPick ? draftPick.nflTeam : 'Unassigned';
+            
             row.innerHTML = `
                 <td>${round}</td>
                 <td>${pick}</td>
@@ -1000,54 +1009,75 @@ function resetDraft() {
     }
 }
 
-// Initialize statistics
+// Initialize statistics with error handling
 function initializeStatistics() {
-    // Position distribution chart
-    const positionCtx = document.getElementById('positionChart').getContext('2d');
-    positionChart = new Chart(positionCtx, {
-        type: 'pie',
-        data: {
-            labels: ['QB', 'RB', 'WR', 'TE', 'K', 'DEF', 'PICK'],
-            datasets: [{
-                data: [0, 0, 0, 0, 0, 0, 0],
-                backgroundColor: [
-                    CONSTANTS.CHART_COLORS.QB,
-                    CONSTANTS.CHART_COLORS.RB,
-                    CONSTANTS.CHART_COLORS.WR,
-                    CONSTANTS.CHART_COLORS.TE,
-                    CONSTANTS.CHART_COLORS.K,
-                    CONSTANTS.CHART_COLORS.DEF,
-                    CONSTANTS.CHART_COLORS.PICK
-                ]
-            }]
+    try {
+        // Wait for Chart.js to load
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js not loaded');
+            return;
         }
-    });
 
-    // Team distribution chart
-    const teamCtx = document.getElementById('teamChart').getContext('2d');
-    teamChart = new Chart(teamCtx, {
-        type: 'bar',
-        data: {
-            labels: availableTeams,
-            datasets: [{
-                label: 'Players Drafted',
-                data: availableTeams.map(() => 0),
-                backgroundColor: CONSTANTS.CHART_COLORS.QB
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
+        // Position distribution chart
+        const positionCtx = document.getElementById('positionChart');
+        if (!positionCtx) {
+            console.error('Position chart canvas not found');
+            return;
+        }
+
+        positionChart = new Chart(positionCtx.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: ['QB', 'RB', 'WR', 'TE', 'K', 'DEF', 'PICK'],
+                datasets: [{
+                    data: [0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: [
+                        CONSTANTS.CHART_COLORS.QB,
+                        CONSTANTS.CHART_COLORS.RB,
+                        CONSTANTS.CHART_COLORS.WR,
+                        CONSTANTS.CHART_COLORS.TE,
+                        CONSTANTS.CHART_COLORS.K,
+                        CONSTANTS.CHART_COLORS.DEF,
+                        CONSTANTS.CHART_COLORS.PICK
+                    ]
+                }]
+            }
+        });
+
+        // Team distribution chart
+        const teamCtx = document.getElementById('teamChart');
+        if (!teamCtx) {
+            console.error('Team chart canvas not found');
+            return;
+        }
+
+        teamChart = new Chart(teamCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: availableTeams,
+                datasets: [{
+                    label: 'Players Drafted',
+                    data: availableTeams.map(() => 0),
+                    backgroundColor: CONSTANTS.CHART_COLORS.QB
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
                     }
                 }
             }
-        }
-    });
+        });
 
-    updateStatistics();
+        updateStatistics();
+    } catch (error) {
+        ErrorHandler.log(error, 'initializeStatistics');
+        console.error('Failed to initialize statistics:', error);
+    }
 }
 
 // Update statistics
