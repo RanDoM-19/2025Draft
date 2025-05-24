@@ -52,47 +52,56 @@ let isLiveDraft = true; // Enable live drafting mode
 // Define the actual draft picks as draftable assets
 const draftPicks = [
     // 2025 Draft Picks
-    { name: '2025 1st Rd - 1.01', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 101 },
-    { name: '2025 1st Rd - 1.02', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'NibsArmy', adp: 102 },
-    { name: '2025 2nd Rd - 2.12', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'connormolloy34', adp: 212 },
-    { name: '2025 2nd Rd - 2.04', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 204 },
-    { name: '2025 2nd Rd - 2.05', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'npizz24', adp: 205 },
-    { name: '2025 3rd Rd - 3.12', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'connormolloy34', adp: 312 },
-    { name: '2025 3rd Rd - 3.11', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'EricM14', adp: 311 },
-    { name: '2025 3rd Rd - 3.10', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'Augeller24', adp: 310 },
-    { name: '2025 3rd Rd - 3.07', position: 'PICK', nflTeam: '94Sleeper', originalOwner: 'samdecker', adp: 307 },
-    { name: '2025 3rd Rd - 3.05', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'npizz24', adp: 305 },
-    { name: '2025 3rd Rd - 3.04', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 304 },
-    { name: '2025 3rd Rd - 3.01', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 301 },
-    { name: '2025 4th Rd - 4.01', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 401 },
-    { name: '2025 4th Rd - 4.04', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 404 },
-    { name: '2025 5th Rd - 5.01', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 501 },
-    { name: '2025 5th Rd - 5.02', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'NibsArmy', adp: 502 },
-    { name: '2025 5th Rd - 5.04', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 504 },
-    { name: '2025 5th Rd - 5.06', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'TommyFink', adp: 506 },
-    { name: '2025 5th Rd - 5.07', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'samdecker', adp: 507 },
+    { name: '2025 1st Rd - 1.01', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 101, round: 1, pick: 1, year: 2025 },
+    { name: '2025 1st Rd - 1.02', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'NibsArmy', adp: 102, round: 1, pick: 2, year: 2025 },
+    { name: '2025 1st Rd - 1.03', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 103, round: 1, pick: 3, year: 2025 },
+    { name: '2025 1st Rd - 1.04', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'samdecker', adp: 104, round: 1, pick: 4, year: 2025 },
+
+    { name: '2025 2nd Rd - 2.04', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 204, round: 2, pick: 4, year: 2025 },
+    { name: '2025 2nd Rd - 2.03', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'npizz24', adp: 205, round: 2, pick: 3, year: 2025 },
+    { name: '2025 2nd Rd - 2.02', position: 'PICK', nflTeam: '94Sleeper', originalOwner: 'samdecker', adp: 307, round: 2, pick: 2, year: 2025 },
+    { name: '2025 2nd Rd - 2.01', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'connormolloy34', adp: 212, round: 2, pick: 1, year: 2025 },
+
+    { name: '2025 3rd Rd - 3.01', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 301, round: 3, pick: 1, year: 2025 },
+    { name: '2025 3rd Rd - 3.02', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 304, round: 3, pick: 2, year: 2025 },
+    { name: '2025 3rd Rd - 3.03', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'npizz24', adp: 305, round: 3, pick: 3, year: 2025 },
+    { name: '2025 3rd Rd - 3.04', position: 'PICK', nflTeam: '94Sleeper', originalOwner: 'samdecker', adp: 307, round: 3, pick: 4, year: 2025 },
+
+    { name: '2025 4th Rd - 4.04', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'Augeller24', adp: 310, round: 4, pick: 4, year: 2025 },
+    { name: '2025 4th Rd - 4.03', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'EricM14', adp: 311, round: 4, pick: 3, year: 2025 },
+    { name: '2025 4th Rd - 4.02', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'connormolloy34', adp: 312, round: 4, pick: 2, year: 2025 },
+    { name: '2025 4th Rd - 4.01', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 401, round: 4, pick: 1, year: 2025 },
     
-    // 2026 Draft Picks
-    { name: '2026 1st Rd', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 601 },
-    { name: '2026 1st Rd', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'NibsArmy', adp: 602 },
-    { name: '2026 1st Rd', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'EricM14', adp: 603 },
-    { name: '2026 1st Rd', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 604 },
-    { name: '2026 2nd Rd', position: 'PICK', nflTeam: '94Sleeper', originalOwner: 'samdecker', adp: 701 },
-    { name: '2026 2nd Rd', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 702 },
-    { name: '2026 2nd Rd', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'npizz24', adp: 703 },
-    { name: '2026 2nd Rd', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'lilwolfman14', adp: 704 },
-    { name: '2026 2nd Rd', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 705 },
-    { name: '2026 3rd Rd', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 801 },
-    { name: '2026 3rd Rd', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'NibsArmy', adp: 802 },
-    { name: '2026 3rd Rd', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'samdecker', adp: 803 },
-    { name: '2026 3rd Rd', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 804 },
-    { name: '2026 4th Rd', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 901 },
-    { name: '2026 4th Rd', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'JoshAllenFuksUrTeam', adp: 902 },
-    { name: '2026 4th Rd', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'TommyFink', adp: 903 },
-    { name: '2026 5th Rd', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 1001 },
-    { name: '2026 5th Rd', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JustinBondi', adp: 1002 },
-    { name: '2026 5th Rd', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 1003 },
-    { name: '2026 5th Rd', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'samdecker', adp: 1004 }
+    { name: '2025 5th Rd - 5.01', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 501, round: 5, pick: 1, year: 2025 },
+    { name: '2025 5th Rd - 5.02', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'NibsArmy', adp: 502, round: 5, pick: 2, year: 2025 },
+    { name: '2025 5th Rd - 5.03', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 504, round: 5, pick: 3, year: 2025 },
+    { name: '2025 5th Rd - 5.04', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'TommyFink', adp: 506, round: 5, pick: 4, year: 2025 },
+    
+    // 2026 Draft Picks (Rounds 6-10)
+    { name: '2026 1st Rd - 6.01', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 601, round: 6, pick: 1, year: 2026 },
+    { name: '2026 1st Rd - 6.02', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'NibsArmy', adp: 602, round: 6, pick: 2, year: 2026 },
+    { name: '2026 1st Rd - 6.03', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'EricM14', adp: 603, round: 6, pick: 3, year: 2026 },
+    { name: '2026 1st Rd - 6.04', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 604, round: 6, pick: 4, year: 2026 },
+
+    { name: '2026 2nd Rd - 7.04', position: 'PICK', nflTeam: '94Sleeper', originalOwner: 'samdecker', adp: 701, round: 7, pick: 4, year: 2026 },
+    { name: '2026 2nd Rd - 7.03', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 702, round: 7, pick: 3, year: 2026 },
+    { name: '2026 2nd Rd - 7.02', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'npizz24', adp: 703, round: 7, pick: 2, year: 2026 },
+    { name: '2026 2nd Rd - 7.01', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'lilwolfman14', adp: 704, round: 7, pick: 1, year: 2026 },
+
+    { name: '2026 3rd Rd - 8.01', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 705, round: 8, pick: 1, year: 2026 }, // Check ADP on this one
+    { name: '2026 3rd Rd - 8.02', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 801, round: 8, pick: 2, year: 2026 },
+    { name: '2026 3rd Rd - 8.03', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'NibsArmy', adp: 802, round: 8, pick: 3, year: 2026 },
+    { name: '2026 3rd Rd - 8.04', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'samdecker', adp: 803, round: 8, pick: 4, year: 2026 },
+    
+    { name: '2026 4th Rd - 9.04', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 804, round: 9, pick: 4, year: 2026 },
+    { name: '2026 4th Rd - 9.03', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 901, round: 9, pick: 3, year: 2026 },
+    { name: '2026 4th Rd - 9.02', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'JoshAllenFuksUrTeam', adp: 902, round: 9, pick: 2, year: 2026 },
+    { name: '2026 4th Rd - 9.01', position: 'PICK', nflTeam: 'NibsArmy', originalOwner: 'TommyFink', adp: 903, round: 9, pick: 1, year: 2026 },
+
+    { name: '2026 5th Rd - 10.01', position: 'PICK', nflTeam: '94Sleeper', originalOwner: '94Sleeper', adp: 1001, round: 10, pick: 1, year: 2026 },
+    { name: '2026 5th Rd - 10.02', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JustinBondi', adp: 1002, round: 10, pick: 2, year: 2026 },
+    { name: '2026 5th Rd - 10.03', position: 'PICK', nflTeam: 'JoshAllenFuksUrTeam', originalOwner: 'JoshAllenFuksUrTeam', adp: 1003, round: 10, pick: 3, year: 2026 },
+    { name: '2026 5th Rd - 10.04', position: 'PICK', nflTeam: 'samdecker', originalOwner: 'samdecker', adp: 1004, round: 10, pick: 4, year: 2026 }
 ];
 
 // Global variables with error checking
@@ -1487,11 +1496,14 @@ function refreshDraftState() {
     const currentTeam = availableTeams[pickOrder.indexOf(currentPickInRound)];
     
     if (currentTeam !== currentUser) {
+        console.log('Refreshing draft state...', { currentPick, currentTeam, currentUser });
         // Refresh the draft board and player pool
         initializeDraftBoard();
         updatePlayerPool();
         updateDraftHistory();
         updateStatistics();
+    } else {
+        console.log('Not refreshing, it is your turn.');
     }
 }
 
