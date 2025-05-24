@@ -576,9 +576,9 @@ function loadDraftSettings() {
         // 2026 Draft Picks
         '6-1': '94Sleeper',    // 2026 1st Rd
         '6-2': 'NibsArmy',     // 2026 1st Rd
-        '6-3': 'JoshAllenFuksUrTeam', // 2026 1st Rd
+        '6-3': 'JoshAllenFuksUrTeam', // 2026 1st Rd (EricM14)
         '6-4': 'JoshAllenFuksUrTeam', // 2026 1st Rd
-        '7-1': '94Sleeper',    // 2026 2nd Rd
+        '7-1': '94Sleeper',    // 2026 2nd Rd (samdecker)
         '7-2': '94Sleeper',    // 2026 2nd Rd
         '7-3': 'samdecker',    // 2026 2nd Rd (npizz24)
         '7-4': 'samdecker',    // 2026 2nd Rd (lilwolfman14)
@@ -608,7 +608,21 @@ function loadDraftSettings() {
     
     document.getElementById('timerDuration').value = timerDuration;
     timeRemaining = timerDuration;
-    draftOrder = settings.draftOrder;
+    
+    // Convert draft picks array to draft order object
+    const newDraftOrder = {};
+    draftPicks.forEach(pick => {
+        const year = pick.name.includes('2025') ? '2025' : '2026';
+        const roundMatch = pick.name.match(/(\d+)(?:st|nd|rd|th) Rd/);
+        if (roundMatch) {
+            const round = parseInt(roundMatch[1]);
+            const roundKey = year === '2026' ? round + 5 : round;
+            const pickNum = pick.adp % 100;
+            newDraftOrder[`${roundKey}-${pickNum}`] = pick.nflTeam;
+        }
+    });
+    
+    draftOrder = newDraftOrder;
     
     console.log('Loaded draft order:', draftOrder);
     
@@ -618,7 +632,7 @@ function loadDraftSettings() {
     // Save the settings to ensure they persist
     Storage.set('draftSettings', {
         timerDuration,
-        draftOrder
+        draftOrder: newDraftOrder
     });
 }
 
@@ -631,26 +645,31 @@ function initializeDraftOrderTable() {
     
     const fragment = document.createDocumentFragment();
     
-    for (let round = 1; round <= CONSTANTS.TOTAL_ROUNDS; round++) {
-        for (let pick = 1; pick <= CONSTANTS.TEAMS_PER_ROUND; pick++) {
-            const row = document.createElement('tr');
-            const currentTeam = draftOrder[`${round}-${pick}`] || '';
+    // Only show rows for picks that exist in draftPicks
+    draftPicks.forEach(pick => {
+        const year = pick.name.includes('2025') ? '2025' : '2026';
+        const roundMatch = pick.name.match(/(\d+)(?:st|nd|rd|th) Rd/);
+        if (roundMatch) {
+            const round = parseInt(roundMatch[1]);
+            const roundKey = year === '2026' ? round + 5 : round;
+            const pickNum = pick.adp % 100;
             
+            const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${round}</td>
-                <td>${pick}</td>
+                <td>${roundKey}</td>
+                <td>${pickNum}</td>
                 <td>
-                    <select class="form-select form-select-sm" data-round="${round}" data-pick="${pick}">
+                    <select class="form-select form-select-sm" data-round="${roundKey}" data-pick="${pickNum}">
                         <option value="">Unassigned</option>
                         ${availableTeams.map(team => `
-                            <option value="${team}" ${currentTeam === team ? 'selected' : ''}>${team}</option>
+                            <option value="${team}" ${pick.nflTeam === team ? 'selected' : ''}>${team}</option>
                         `).join('')}
                     </select>
                 </td>
             `;
             fragment.appendChild(row);
         }
-    }
+    });
     
     tbody.appendChild(fragment);
 }
